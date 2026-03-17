@@ -1,5 +1,12 @@
-# TT-Metalium / TT-NN Models
+## Featured Models
 
+### [SpeechT5 Voice Conversion](./demos/speecht5_vc)
+| Batch | Hardware | TTFT (MS) | T/S/U | Target<br>T/S/U | T/S | TT-Metalium Release | vLLM Tenstorrent Repo Release |
+|-------|----------|-----------|-------|-----------------|-----|---------------------|-------------------------------|
+| 1     | [N150/Wormhole](https://tenstorrent.com/hardware/blackhole) | N/A      | N/A  | N/A              | N/A  | [v0.65.0-rc7](https://github.com/tenstorrent/tt-metal/tree/v0.65.0-rc7) | N/A |
+
+[!IMPORTANT]
+> For a **full model list** see the **[Model Matrix](https://github.com/tenstorrent/tt-metal/blob/main/models/README.md)**, or visit the **[Developer Hub](https://tenstorrent.com/developers)**.
 ## LLMs
 
 | Model                                                         | Batch | Hardware                                                 | ttft (ms) | t/s/u | Target<br>t/s/u | t/s    | TT-Metalium Release                                            | vLLM Tenstorrent Repo Release                                                                                |
