@@ -7,13 +7,14 @@ endif()
 
 # Clear any compile options that may have been set by consuming projects that have leaked.
 set_directory_properties(
-    PROPERTIES
-        COMPILE_OPTIONS
-            ""
-)
+add_subdirectory(tt_stl)
+add_subdirectory(ttnn)
+add_subdirectory(model_tracer)
+add_subdirectory(models/experimental/mobilenetv2)
 
-############################################
-# Project setup
+# Add tests
+enable_testing()
+# Project setup stage
 ############################################
 
 # For single-config generators, default to RelWithDebInfo if unspecified
@@ -259,11 +260,15 @@ target_link_libraries(
         nlohmann_json::nlohmann_json
         fmt::fmt-header-only
 )
+if(COMMAND tt_disable_ccache_for_pch)
+    tt_disable_ccache_for_pch(metal_common_pch)
+endif()
 
 ############################################################################################################################
 # Build subdirectories
 ############################################################################################################################
 
+include(helper_functions)
 add_subdirectory(tt_stl)
 add_subdirectory(tools)
 add_subdirectory(tt_metal)
