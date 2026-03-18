@@ -1,14 +1,13 @@
-#pragma once
+#ifndef TT_METAL_KERNELS_ELTWISE_HPP
+#define TT_METAL_KERNELS_ELTWISE_HPP
 
+#include <vector>
 #include "tt_metal/detail/buffer.hpp"
-#include "tt_metal/detail/tensor.hpp"
 
 namespace tt {
-
-    DIVIDE,
-};
-
-void eltwise(const Tensor& input1, const Tensor& input2, Tensor& output, EltwiseOp op);
-void eltwise_row_major(const Tensor& input1, const Tensor& input2, Tensor& output, EltwiseOp op);
-
-} // namespace tt
+    void eltwise(
+        const Buffer& input1,
+        const Buffer& input2,
+        const Buffer& output,
+        const std::vector<uint32_t>& shape,
+        const std::string& op);
