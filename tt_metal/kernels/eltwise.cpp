@@ -2,50 +2,41 @@
 #include "tt_metal/detail/kernels.hpp"
 #include "tt_metal/detail/buffer.hpp"
 #include "tt_metal/detail/tensor.hpp"
+#include "tt_metal/detail/program.hpp"
+#include "tt_metal/detail/device.hpp"
+#include "tt_metal/detail/launch.hpp"
+    const Buffer& output,
+    const std::vector<uint32_t>& shape,
+    const std::string& op) {
+    // Directly handle row major tensors without conversion
+    auto device = input.device();
+    auto program = create_program(device, op);
+    auto kernel = create_kernel(program, op);
+    set_arg(kernel, 2, output.buffer());
+    set_arg(kernel, 3, shape.size());
 
-namespace tt {
-
-    // Convert inputs to tiled format
-    Tensor tiled_input1 = convert_to_tiled(input1);
-    Tensor tiled_input2 = convert_to_tiled(input2);
-
-    // Perform eltwise operation on tiled inputs
-    Tensor tiled_output = perform_eltwise(tiled_input1, tiled_input2, op);
-
-    convert_to_row_major(tiled_output, output);
-}
-
-void eltwise_row_major(const Tensor& input1, const Tensor& input2, Tensor& output, EltwiseOp op) {
-    // Ensure inputs and output are in row major format
-    if (input1.layout() != Layout::ROW_MAJOR || input2.layout() != Layout::ROW_MAJOR || output.layout() != Layout::ROW_MAJOR) {
-        throw std::invalid_argument("Inputs and output must be in row major format for native row major eltwise operation.");
+    // Assuming row major layout, calculate strides
+    std::vector<uint32_t> strides(shape.size());
+    strides.back() = 1;
+    for (int i = shape.size() - 2; i >= 0; --i) {
+        strides[i] = strides[i + 1] * shape[i + 1];
     }
 
-    // Get the dimensions of the tensors
-    auto [rows, cols] = input1.shape();
+    set_arg(kernel, 4, strides.data());
 
-    // Launch the kernel for row major eltwise operation
-    launch_row_major_eltwise_kernel(input1, input2, output, rows, cols, op);
+    launch(kernel, device, shape);
 }
 
-void launch_row_major_eltwise_kernel(const Tensor& input1, const Tensor& input2, Tensor& output, size_t rows, size_t cols, EltwiseOp op) {
-    // Define the kernel launch parameters
-    KernelLaunchParams params;
-    params.grid_dim = {static_cast<uint32_t>(cols), static_cast<uint32_t>(rows)};
-    params.block_dim = {1, 1};
-
-    // Define the kernel arguments
-    KernelArgs args = {
-        {"input1", input1.buffer()},
-        {"input2", input2.buffer()},
-        {"output", output.buffer()},
-        {"rows", static_cast<uint32_t>(rows)},
-        {"cols", static_cast<uint32_t>(cols)},
-        {"op", static_cast<uint32_t>(op)}
-    };
-
-    // Launch the kernel
-    launch_kernel("row_major_eltwise_kernel", params, args);
-}
-
-} // namespace tt
+Program create_program(const Device& device, const std::string& op) {
+    std::string kernel_code = R"(
+__kernel void eltwise(__global const float* input1, __global const float* input2, __global float* output, __global const uint32_t* shape, __global const uint32_t* strides, uint32_t dim) {
+    uint32_t idx = get_global_id(0);
+    uint32_t coords[DIM];
+    uint32_t index = idx;
+        coords[i] = index / strides[i];
+        index %= strides[i];
+    }
+    uint32_t flat_index = 0;
+    for (uint32_t i = 0; i < dim; ++i) {
+        flat_index = flat_index * shape[i] + coords[i];
+    }
