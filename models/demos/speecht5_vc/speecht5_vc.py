@@ -38,7 +38,7 @@ def convert_voice(input_text, output_path):
 
 
 def main():
-    input_text = "Hello, how are you doing today?"
+    input_text = "Hello, how are you?"
     output_path = "output.wav"
     convert_voice(input_text, output_path)
     print(f"Converted speech saved to {output_path}")
@@ -50,51 +50,32 @@ if __name__ == "__main__":
 
 # TTNN Integration
 def ttnn_speecht5_vc(input_ids, speaker_embeddings, device):
-    # Initialize TTNN program
     program = Program()
     with program:
-        # Define input tensors
         input_tensor = Tensor(shape=input_ids.shape, dtype=torch.int32, device=device)
         speaker_tensor = Tensor(shape=speaker_embeddings.shape, dtype=torch.float32, device=device)
-
-        # Load model weights
-        processor, model, vocoder = load_model()
-
-        # Preprocess input
-        inputs = processor(input_ids=input_ids, return_tensors="pt")
-        input_tensor.from_torch(inputs["input_ids"])
-        speaker_tensor.from_torch(speaker_embeddings)
-
-        # Define model layers
-        encoder = tt_speecht5_vc.Encoder(model.encoder)
-        decoder = tt_speecht5_vc.Decoder(model.decoder)
-        vocoder_layer = tt_speecht5_vc.Vocoder(vocoder)
-
-        # Forward pass
-        encoder_output = encoder(input_tensor)
-        decoder_output = decoder(encoder_output, speaker_tensor)
-        speech = vocoder_layer(decoder_output)
-
-        # Define output tensor
-        output_tensor = Tensor(shape=speech.shape, dtype=torch.float32, device=device)
-        output_tensor.from_torch(speech)
-
-    # Compile and run program
+        output_tensor = tt_speecht5_vc(input_tensor, speaker_tensor)
     program.compile()
     program.run()
+    return output_tensor
 
-    return output_tensor.to_torch()
+
+def ttnn_convert_voice(input_text, output_path, device):
+    processor, model, vocoder = load_model()
+    speaker_embeddings = load_speaker_embeddings()
+    inputs = preprocess_input(input_text, processor)
+    input_ids = inputs["input_ids"].to(device)
+    speaker_embeddings = speaker_embeddings.to(device)
+    speech = ttnn_speecht5_vc(input_ids, speaker_embeddings, device)
+    torchaudio.save(output_path, speech.cpu(), sample_rate=16000)
 
 
 def ttnn_main():
     device = Device()
-    input_text = "Hello, how are you doing today?"
-    processor, model, _ = load_model()
-    inputs = processor(text=input_text, return_tensors="pt")
-    speaker_embeddings = load_speaker_embeddings()
-    speech = ttnn_speecht5_vc(inputs["input_ids"], speaker_embeddings, device)
-    torchaudio.save("ttnn_output.wav", speech, sample_rate=16000)
-    print("Converted speech saved to ttnn_output.wav")
+    input_text = "Hello, how are you?"
+    output_path = "output_ttnn.wav"
+    ttnn_convert_voice(input_text, output_path, device)
+    print(f"Converted speech saved to {output_path}")
 
 
 if __name__ == "__main__":
