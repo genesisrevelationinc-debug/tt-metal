@@ -10,4 +10,6 @@ This demo showcases the implementation of the Microsoft SpeechT5 Voice Conversio
 - Torchaudio
 - tt-metal
 
-## Installation
+## Setup
+1. Install the required dependencies:
+   
