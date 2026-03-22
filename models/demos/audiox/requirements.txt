@@ -1,3 +1,5 @@
-ttnn
-numpy
 torch
+numpy
+scipy
+ttnn
+tt-metal
