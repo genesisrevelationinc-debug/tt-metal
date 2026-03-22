@@ -1,4 +1,4 @@
-[![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workflows/all-post-commit-workflows.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/workflows/all-post-commit-workflows.yaml)
+[![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tenstorrent/tt-metal)
 
 <div align="center">
@@ -26,7 +26,7 @@
 The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
 
 >[!IMPORTANT]
-> For a **full model list** see the **[Model Matrix](https://github.com/tenstorrent/tt-metal/tree/main/models/README.md)**, or visit the **[Developer Hub](https://tenstorrent.com/developers)**.
+> For a **full model list** see the **[Model Matrix](https://github.com/tenstorrent/tt-metal/blob/main/models/README.md)**, or visit the **[Developer Hub](https://tenstorrent.com/developers)**.
 
 >[!NOTE]
 > Performance Metrics:
@@ -47,12 +47,25 @@ The Models team is focused on developing the following models, optimizing them f
 |-------|----------|-----------|-------|-----------------|------|---------------------|-------------------------------|
 | 32 | [n300 (Wormhole)](https://tenstorrent.com/hardware/wormhole) | 109 | 22.1 | 30 | 707.2 | [v0.62.0-rc35](https://github.com/tenstorrent/tt-metal/tree/v0.62.0-rc35) | [ced0161](https://github.com/tenstorrent/vllm/tree/ced0161dc223e6d8aca5f44a6c43d13070c3fba6/tt_metal) |
 
-### [Qwen 2.5 72B (TP=8)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)
+
+>[!NOTE]
+> Performance Metrics:
+> - Time to First Token (TTFT) measures the time (in milliseconds) it takes to generate the first output token after input is received.
+> - T/S/U (Tokens per Second per User): Represents the throughput of first-token generation after prefill. It is calculated as 1 / inter-token latency.
+> - T/S (Tokens per Second): Represents total token throughput, calculated as T/S = T/S/U x batch size.
+> - TP (Tensor Parallel) and DP (Data Parallel): Indicate the parallelization factors across multiple devices.
+> - Reported LLM Performance: Based on an input sequence length of 128 tokens for all models.
+> - Performance Data Source: Metrics were collected using the tt-metal model demos (linked above). Results may vary when using other runtimes such as the vLLM inference server.
+
+### [AudioX](./models/demos/audiox)
 | Batch | Hardware | TTFT (MS) | T/S/U | Target<br>T/S/U | T/S | TT-Metalium Release | vLLM Tenstorrent Repo Release |
 |-------|----------|-----------|-------|-----------------|-----|---------------------|-------------------------------|
-| 32 | [QuietBox (Wormhole)](https://tenstorrent.com/hardware/tt-quietbox) | 223 | 15.4 | 20 | 492.8 | [v0.62.0-rc25](https://github.com/tenstorrent/tt-metal/tree/v0.62.0-rc25) | [e7c329b](https://github.com/tenstorrent/vllm/tree/e7c329b1664f8591ae8b4269bed9690726e52a24/tt_metal) |
+| 1     | [N150 (Wormhole)](https://tenstorrent.com/hardware/wormhole) | 100      | 25  | 40              | 25  | [v0.65.0-rc7](https://github.com/tenstorrent/tt-metal/tree/v0.65.0-rc7) | [Not Available](#) |
 
-### [Whisper (distil-large-v3)](https://github.com/tenstorrent/tt-metal/tree/main/models/demos/audio/whisper)
+### [Llama 3.3 70B (TP=32)](./models/demos/llama3_70b_galaxy)
+| Batch | Hardware | TTFT (MS) | T/S/U | Target<br>T/S/U | T/S | TT-Metalium Release | vLLM Tenstorrent Repo Release |
+|-------|----------|-----------|-------|-----------------|-----|---------------------|-------------------------------|
+| 32    | [Galaxy (Wormhole)](https://tenstorrent.com/hardware/galaxy) | 53      | 72.5  | 80              | 2268.8  | [v0.65.0-rc7](https://github.com/tenstorrent/tt-metal/tree/v0.65.0-rc7) | [59be953](https://github.com/tenstorrent/vllm/tree/59be953f2bbd21e227f9ef4b779f545f9c3bf599/tt_metal) |
 | Batch | Hardware | TTFT (MS) | T/S/U | Target<br>T/S/U | T/S | TT-Metalium Release |
 |-------|----------|-----------|-------|-----------------|-----|---------------------|
 | 1     | [n150 (Wormhole)](https://tenstorrent.com/hardware/wormhole)        | 163       | 105.0  | 45           | 105.0   | [v0.65.0-dev20251208](https://github.com/tenstorrent/tt-metal/tree/v0.65.0-dev20251208) |
