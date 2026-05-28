@@ -1,4 +1,4 @@
-[![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workflows/all-post-commit-workflows.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/workflows/all-post-commit-workflows.yaml)
+[![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tenstorrent/tt-metal)
 
 <div align="center">
@@ -26,8 +26,15 @@
 The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
 
 >[!IMPORTANT]
-> For a **full model list** see the **[Model Matrix](https://github.com/tenstorrent/tt-metal/tree/main/models/README.md)**, or visit the **[Developer Hub](https://tenstorrent.com/developers)**.
+> For a **full model list** see the **[Model Matrix](https://github.com/tenstorrent/tt-metal/blob/main/models/README.md)**, or visit the **[Developer Hub](https://tenstorrent.com/developers)**.
 
+>[!NOTE]
+> Performance Metrics:
+> - Time to First Token (TTFT) measures the time (in milliseconds) it takes to generate the first output token after input is received.
+> - T/S/U (Tokens per Second per User): Represents the throughput of first-token generation after prefill. It is calculated as 1 / inter-token latency.
+> - T/S (Tokens per Second): Represents total token throughput, calculated as T/S = T/S/U x batch size.
+> - TP (Tensor Parallel) and DP (Data Parallel): Indicate the parallelization factors across multiple devices.
+> - Reported LLM Performance: Based on an input sequence length of 128 tokens for all models.
 >[!NOTE]
 > Performance Metrics:
 > - Time to First Token (TTFT) measures the time (in milliseconds) it takes to generate the first output token after input is received.
@@ -37,15 +44,13 @@ The Models team is focused on developing the following models, optimizing them f
 > - Reported LLM Performance: Based on an input sequence length of 128 tokens for all models.
 > - Performance Data Source: Metrics were collected using the tt-metal model demos (linked above). Results may vary when using other runtimes such as the vLLM inference server.
 
-### [Llama 3.3 70B (TP=32)](./models/demos/llama3_70b_galaxy)
+### [Phi 1.5](./models/demos/phi_1_5)
 | Batch | Hardware | TTFT (MS) | T/S/U | Target<br>T/S/U | T/S | TT-Metalium Release | vLLM Tenstorrent Repo Release |
 |-------|----------|-----------|-------|-----------------|-----|---------------------|-------------------------------|
-| 32    | [Galaxy (Wormhole)](https://tenstorrent.com/hardware/galaxy) | 53      | 72.5  | 80              | 2268.8  | [v0.65.0-rc7](https://github.com/tenstorrent/tt-metal/tree/v0.65.0-rc7) | [59be953](https://github.com/tenstorrent/vllm/tree/59be953f2bbd21e227f9ef4b779f545f9c3bf599/tt_metal) |
+| 32    | [N150/N300] | - | - | - | - | [Wormhole] | - |
 
-### [Qwen 2.5 7B (TP=2)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)
-| Batch | Hardware | TTFT (MS) | T/S/U | Target<br>T/S/U | T/S  | TT-Metalium Release | vLLM Tenstorrent Repo Release |
-|-------|----------|-----------|-------|-----------------|------|---------------------|-------------------------------|
-| 32 | [n300 (Wormhole)](https://tenstorrent.com/hardware/wormhole) | 109 | 22.1 | 30 | 707.2 | [v0.62.0-rc35](https://github.com/tenstorrent/tt-metal/tree/v0.62.0-rc35) | [ced0161](https://github.com/tenstorrent/vllm/tree/ced0161dc223e6d8aca5f44a6c43d13070c3fba6/tt_metal) |
+### [Llama 3.3 70B (TP=32)](./models/demos/llama3_70b_galaxy)
+| 32    | [Galaxy (Wormhole)](https://tenstorrent.com/hardware/galaxy) | 53      | 72.5  | 80              | 2268.8  | [v0.65.0-rc7](https://github.com/tenstorrent/tt-metal/tree/v0.65.0-rc7) | [59be953](https://github.com/tenstorrent/vllm/tree/59be953f2bbd21e227f9ef4b779f545f9c3bf599/tt_metal) |
 
 ### [Qwen 2.5 72B (TP=8)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)
 | Batch | Hardware | TTFT (MS) | T/S/U | Target<br>T/S/U | T/S | TT-Metalium Release | vLLM Tenstorrent Repo Release |
@@ -65,7 +70,7 @@ The Models team is focused on developing the following models, optimizing them f
 
 Blackhole software optimization is under active development.  Please join us in shaping the future of open source AI! <br> [\[Discord\]](https://discord.gg/tenstorrent) [\[Developer Hub\]](https://tenstorrent.com/developers)
 
-For more information regarding vLLM installation and environment creation visit the [Tenstorrent vLLM repository](https://github.com/tenstorrent/vllm/blob/dev/tt_metal/README.md).
+For more information regarding vLLM installation and environment creation visit the [Tenstorrent vLLM TT plugin README](https://github.com/tenstorrent/vllm/blob/dev/plugins/vllm-tt-plugin/README.md).
 
 ## Model Updates
 
@@ -198,7 +203,11 @@ Inspector provides insights into host runtime. It logs necessary data for invest
 
 | Release | Release Date | FW Version | KMD Version | SMI Version |
 |:---------:|:--------------:|:------------:|:--------:|:--------:|
-| 0.66.0 | ETA Jan 30, 2026 | 19.2.0 | 2.5.0 | 3.0.38 |
+| 0.68.0 | ETA Apr 30, 2026 | 19.2.0 | 2.5.0 | 3.0.38 |
+| [0.67.4](https://github.com/tenstorrent/tt-metal/releases/tag/v0.67.4) | Mar 30, 2026 | 19.2.0 | 2.5.0 | 3.0.38 |
+| [0.67.0](https://github.com/tenstorrent/tt-metal/releases/tag/v0.67.0) | Mar 25, 2026 | 19.2.0 | 2.5.0 | 3.0.38 |
+| [0.66.0](https://github.com/tenstorrent/tt-metal/releases/tag/v0.66.0) | Feb 18, 2026 | 19.2.0 | 2.5.0 | 3.0.38 |
+| [0.65.1](https://github.com/tenstorrent/tt-metal/releases/tag/v0.65.1) | Jan 12, 2026 | 19.2.0 | 2.5.0 | 3.0.38 |
 | [0.65.0](https://github.com/tenstorrent/tt-metal/releases/tag/v0.65.0) | Dec 15, 2025 | 19.2.0 | 2.5.0 | 3.0.38 |
 | [0.64.5](https://github.com/tenstorrent/tt-metal/releases/tag/v0.64.5) | Dec  1, 2025 | 18.12.0 | 2.4.1 | 3.0.32 |
 | [0.64.4](https://github.com/tenstorrent/tt-metal/releases/tag/v0.64.4) | Nov 24, 2025 | 18.12.0 | 2.4.1 | 3.0.32 |
