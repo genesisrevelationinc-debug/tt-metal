@@ -1,4 +1,3 @@
-<!-- Add the LLVC model implementation details to the README -->
 [![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tenstorrent/tt-metal)
 
@@ -13,12 +12,14 @@
 <img src="https://raw.githubusercontent.com/tenstorrent/tt-metal/main/docs/source/common/_static/tt_nn_w_logo.png" alt="ttnn logo" height="180"/>
 
 **TT-NN** is a Python & C++ Neural Network OP library.
+[![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/worm.solutions?query=checks=github-activity)
+<h1>
+
+ [Hardware](https://tenstorrent.com/hardware/blackhole) | [Install](./INSTALLING.md) |  [Discord](https://discord.gg/tt_metal) | [Join Us](https://boards.greenhouse.com/tenstorrent/jobs/4155609007) | [Bounty](https://github.com/tenstorrent/tt-metal/issues?q=is%3Aissue%20state%3Aopen%20label%3Abounty)
+
+**TT-NN** is a Python & C++ Neural Network OP library.
 
 <h3>
-
-[API Reference](https://docs.tenstorrent.com/tt-metal/latest/ttnn/index.html) | [Model Demos](./models/demos/)
-
-</h3>
 
 </div>
 
@@ -26,13 +27,13 @@
 
 The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
 
->[!IMPORTANT]
-> For a **full model list** see the **[Model Matrix](https://github.com/tenstorrent/tt-metal/blob/main/models/README.md)**, or visit the **[Developer Hub](https://tenstorrent.com/developers)**.
+The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
+
+| [Model Matrix](https://github.com/tenstorrent/tt-metal/blob/main/models/README.md) | [Developer Hub](https://tenstorrent.com/developers) | [Model Demos](./models/demos/)
 
 >[!NOTE]
 > Performance Metrics:
 > - Time to First Token (TTFT) measures the time (in milliseconds) it takes to generate the first output token after input is received.
-> - T/S/U (Tokens per Second per User): Represents the throughput of first-token generation after prefill. It is calculated as 1 / inter-token latency.
 > - T/S (Tokens per Second): Represents total token throughput, calculated as T/S = T/S/U x batch size.
 > - TP (Tensor Parallel) and DP (Data Parallel): Indicate the parallelization factors across multiple devices.
 > - Reported LLM Performance: Based on an input sequence length of 128 tokens for all models.
