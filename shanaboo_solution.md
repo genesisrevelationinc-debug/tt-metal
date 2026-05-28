@@ -10,179 +10,164 @@
  import torch
  import ttnn
 @@ -10,6 +11,7 @@
- from typing import List, Optional, Tuple
+ from models.utility_functions import nearest_32
  from models.tt_transformers.tt.common import (
      precompute_freqs,
-+    precompute_freqs_for_finetune,
++    precompute_freqs_for_phi,
      sample,
-     HostEmbedding,
-     PagedAttentionConfig,
-@@ -24,6 +26,7 @@
-     TtLlamaAttention,
-     TtLlamaDecoderLayer,
+     precompute_rotary_embeddings,
+     encode_prompt_llama_instruct,
+@@ -18,6 +20,7 @@
+ from models.tt_transformers.tt.llama_decoder import TtTransformerBlock
+ from models.tt_transformers.tt.llama_ccl import send_to_all_gather, send_to_mcast_parallel
+ from models.tt_transformers.tt.model_config import ModelArgs, TransformerConfig
++from models.tt_transformers.tt.model_config import PhiConfig
+ from models.tt_transformers.tt.distributed_processing import (
+     DistributedNorm,
+     DistributedFFN,
+@@ -30,6 +33,7 @@
+     TtLlamaEmbedding,
+     TtLlamaRotaryEmbedding,
+     TtLlamaRotaryEmbeddingQwen,
++    TtLlamaRotaryEmbeddingPhi,
  )
-+from models.tt_transformers.tt.phi_attention import TtPhiAttention, TtPhiDecoderLayer
+ from models.tt_transformers.tt.norms import TtRMSNorm, TtFalconMambaRMSNorm
  from models.tt_transformers.tt.llama_mlp import TtLlamaMLP
- from models.tt_transformers.tt.norm import TtRMSNorm, TtLayerNorm
- from models.tt_transformers.tt.embeddings import TtLlamaEmbedding
-@@ -32,6 +35,7 @@
-     ModelArgs,
-     TransformerBlock,
-     LlamaLikeConfig,
-+    PhiConfig,
+@@ -40,6 +44,7 @@
+     TtLlamaAttentionQwen,
+     TtLlamaAttentionFalconMamba,
+     TtLlamaAttentionMamba,
++    TtLlamaAttentionPhi,
  )
- from models.tt_transformers.tt.distributed import TtDistributedLlama
- from models.tt_transformers.tt.rope import TtLlamaRotarySetup
-@@ -43,6 +47,7 @@
-     "LlamaForCausalLM",
-     "LlamaForConditionalGeneration",
-     "Qwen2ForCausalLM",
-+    "PhiForCausalLM",
- ]
+ from models.tt_transformers.tt.llama_mlp import TtLlamaMLP, TtLlamaMLPQwen
+ from models.tt_transformers.tt.llama_decoder import TtTransformerBlock
+@@ -56,6 +61,7 @@
+     "llama": TtLlamaAttention,
+     "qwen": TtLlamaAttentionQwen,
+     "falcon_mamba": TtLlamaAttentionFalconMamba,
++    "phi": TtLlamaAttentionPhi,
+ }
  
+ MLP_CLASS = {
+@@ -68,6 +74,7 @@
+     "llama": TtLlamaRotaryEmbedding,
+     "qwen": TtLlamaRotaryEmbeddingQwen,
+     "falcon_mamba": TtLlamaRotaryEmbedding,
++    "phi": TtLlamaRotaryEmbeddingPhi,
+ }
  
-@@ -52,6 +57,7 @@
-     "LlamaForCausalLM": "llama",
-     "LlamaForConditionalGeneration": "llama",
-     "Qwen2ForCausalLM": "qwen2",
-+    "PhiForCausalLM": "phi",
+ NORM_CLASS = {
+@@ -75,6 +82,7 @@
+     "qwen": TtRMSNorm,
+     "falcon_mamba": TtFalconMambaRMSNorm,
+     "mamba": TtRMSNorm,
++    "phi": TtRMSNorm,
  }
  
  
-@@ -61,6 +67,7 @@
-     "LlamaForCausalLM": "llama",
-     "LlamaForConditionalGeneration": "llama",
-     "Qwen2ForCausalLM": "qwen2",
-+    "PhiForCausalLM": "phi",
+@@ -85,6 +93,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -68,6 +75,7 @@
-     "LlamaForCausalLM": TtLlamaAttention,
-     "LlamaForConditionalGeneration": TtLlamaAttention,
-     "Qwen2ForCausalLM": TtLlamaAttention,
-+    "PhiForCausalLM": TtPhiAttention,
+@@ -93,6 +102,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -75,6 +83,7 @@
-     "LlamaForCausalLM": TtLlamaDecoderLayer,
-     "LlamaForConditionalGeneration": TtLlamaDecoderLayer,
-     "Qwen2ForCausalLM": TtLlamaDecoderLayer,
-+    "PhiForCausalLM": TtPhiDecoderLayer,
+@@ -101,6 +111,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -82,6 +91,7 @@
-     "LlamaForCausalLM": TtRMSNorm,
-     "LlamaForConditionalGeneration": TtRMSNorm,
-     "Qwen2ForCausalLM": TtRMSNorm,
-+    "PhiForCausalLM": TtLayerNorm,
+@@ -109,6 +120,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -89,6 +99,7 @@
-     "LlamaForCausalLM": TtLlamaEmbedding,
-     "LlamaForConditionalGeneration": TtLlamaEmbedding,
-     "Qwen2ForCausalLM": TtLlamaEmbedding,
-+    "PhiForCausalLM": TtLlamaEmbedding,
+@@ -117,6 +129,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -96,6 +107,7 @@
-     "LlamaForCausalLM": LlamaLikeConfig,
-     "LlamaForConditionalGeneration": LlamaLikeConfig,
-     "Qwen2ForCausalLM": LlamaLikeConfig,
-+    "PhiForCausalLM": PhiConfig,
+@@ -125,6 +138,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -103,6 +115,7 @@
-     "LlamaForCausalLM": "rope",
-     "LlamaForConditionalGeneration": "rope",
-     "Qwen2ForCausalLM": "rope",
-+    "PhiForCausalLM": "partial_rotary",
+@@ -133,6 +147,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -110,6 +123,7 @@
-     "LlamaForCausalLM": False,
-     "LlamaForConditionalGeneration": False,
-     "Qwen2ForCausalLM": False,
-+    "PhiForCausalLM": True,
+@@ -141,6 +156,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -117,6 +131,7 @@
-     "LlamaForCausalLM": False,
-     "LlamaForConditionalGeneration": False,
-     "Qwen2ForCausalLM": False,
-+    "PhiForCausalLM": True,
+@@ -149,6 +165,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -124,6 +139,7 @@
-     "LlamaForCausalLM": False,
-     "LlamaForConditionalGeneration": False,
-     "Qwen2ForCausalLM": False,
-+    "PhiForCausalLM": True,
+@@ -157,6 +174,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -131,6 +147,7 @@
-     "LlamaForCausalLM": False,
-     "LlamaForConditionalGeneration": False,
-     "Qwen2ForCausalLM": False,
-+    "PhiForCausalLM": True,
+@@ -165,6 +183,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -138,6 +155,7 @@
-     "LlamaForCausalLM": False,
-     "LlamaForConditionalGeneration": False,
-     "Qwen2ForCausalLM": False,
-+    "PhiForCausalLM": True,
+@@ -173,6 +192,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -145,6 +163,7 @@
-     "LlamaForCausalLM": False,
-     "LlamaForConditionalGeneration": False,
-     "Qwen2ForCausalLM": False,
-+    "PhiForCausalLM": True,
+@@ -181,6 +201,7 @@
+     "qwen": TtLlamaMLPQwen,
+     "falcon_mamba": TtLlamaMLP,
+     "mamba": TtLlamaMLP,
++    "phi": TtLlamaMLP,
  }
  
  
-@@ -152,6 +171,7 @@
-     "LlamaForCausalLM": False,
-     "LlamaForConditionalGeneration": False,
-     "Qwen2ForCausalLM": False,
-+    "PhiForCausalLM": True,
- }
- 
- 
-@@ -159,6 +179,7 @@
-     "LlamaForCausalLM": False,
-     "LlamaForConditionalGeneration": False,
-     "Qwen2ForCausalLM": False,
-+    "PhiForCausalLM": True,
- }
- 
- 
-@@ -166,6 +187,7 @@
-     "LlamaForCausalLM": False,
-     "LlamaForConditionalGeneration": False,
-     "Qwen2ForCausalLM": False,
-+    "PhiForCausalLM": True,
- }
- 
- 
-@@ -173,6 +195,7 @@
-     "LlamaForCausalLM": False,
-     "LlamaForConditionalGeneration": False,
-     "Qwen2ForCausalLM": False,
-+    "PhiForCausalLM": True,
- }
- 
- 
-@@ -180,6 +203
+@@ -189,6 +210,7 @@
+    
