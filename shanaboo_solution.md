@@ -1,66 +1,188 @@
 ```diff
---- a/README.md
-+++ b/README.md
-@@ -1,3 +1,39 @@
-+<details>
-+<summary>Table of Contents</summary>
+--- a/models/tt_transformers/tt_transformers/llama.py
++++ b/models/tt_transformers/tt_transformers/llama.py
+@@ -1,6 +1,7 @@
+ # SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+ 
+ # SPDX-License-Identifier: Apache-2.0
 +
-+<!-- Please update this table of contents with new tt-metal PRs -->
-+- [Installation](#installation)
-+- [Model List](#model-list)
-+- [Performance Metrics](#performance-metrics)
-+- [Models](#models)
-+  - [Llama 3.3 70B (TP=32)](#llama-33-70b-tp32)
-+  - [Qwen 2.5 7B (TP=2)](#qwen-25-7b-tp2)
-+- [Hardware](#hardware)
-+- [Install](#install)
-+- [Discord](#discord)
-+- [Join Us](#join-us)
-+- [Bounty $](#bounty-)
-+</details>
-+
-+<h1>
-+<br>
-+
-+# <a name="model-list"></a>Model List
-+
-+The following models are currently supported and optimized for performance, accuracy, and compatibility:
-+
-+- [Llama 3.3 70B (TP=32)](./models/demos/llama3_70b_galaxy)
-+- [Qwen 2.5 7B (TP=2)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)
-+
-+## Performance Metrics
-+
-+The following performance metrics are based on an input sequence length of 128 tokens for all models.
-+
-+## Hardware
-+
-+For hardware specifications, visit [Tenstorrent Hardware](https://tenstorrent.com/hardware).
-+
-+## Install
-+
-+To install, follow the instructions in [INSTALLING.md](./INSTALLING.md).
-+
-+## Discord
-+
-+Join our community on [Discord](https://discord.gg/tvhGzHQwaj).
-+
-+## Join Us
-+
-+We're hiring! Check out our [careers page](https://boards.greenhouse.io/tenstorrent/jobs/4155609007).
-+
-+## Bounty $
-+
-+See [Bounty $](https://github.com/tenstorrent/tt-metal/issues?q=is%3Aissue%20state%3Aopen%20label%3Abounty).
-+
-+## Model Demos
-+
-+Check out our [model demos](./models/demos/).
-+
-+## LLM Performance
-+
-+The following performance metrics are based on an input sequence length of 128 tokens for all models.
-+
-+## TT-Metalium Release
-+
-+For the latest release, see [TT-Metalium Releases](https.
+ import math
+ import torch
+ import ttnn
+@@ -10,6 +11,7 @@
+ from typing import List, Optional, Tuple
+ from models.tt_transformers.tt.common import (
+     precompute_freqs,
++    precompute_freqs_for_finetune,
+     sample,
+     HostEmbedding,
+     PagedAttentionConfig,
+@@ -24,6 +26,7 @@
+     TtLlamaAttention,
+     TtLlamaDecoderLayer,
+ )
++from models.tt_transformers.tt.phi_attention import TtPhiAttention, TtPhiDecoderLayer
+ from models.tt_transformers.tt.llama_mlp import TtLlamaMLP
+ from models.tt_transformers.tt.norm import TtRMSNorm, TtLayerNorm
+ from models.tt_transformers.tt.embeddings import TtLlamaEmbedding
+@@ -32,6 +35,7 @@
+     ModelArgs,
+     TransformerBlock,
+     LlamaLikeConfig,
++    PhiConfig,
+ )
+ from models.tt_transformers.tt.distributed import TtDistributedLlama
+ from models.tt_transformers.tt.rope import TtLlamaRotarySetup
+@@ -43,6 +47,7 @@
+     "LlamaForCausalLM",
+     "LlamaForConditionalGeneration",
+     "Qwen2ForCausalLM",
++    "PhiForCausalLM",
+ ]
+ 
+ 
+@@ -52,6 +57,7 @@
+     "LlamaForCausalLM": "llama",
+     "LlamaForConditionalGeneration": "llama",
+     "Qwen2ForCausalLM": "qwen2",
++    "PhiForCausalLM": "phi",
+ }
+ 
+ 
+@@ -61,6 +67,7 @@
+     "LlamaForCausalLM": "llama",
+     "LlamaForConditionalGeneration": "llama",
+     "Qwen2ForCausalLM": "qwen2",
++    "PhiForCausalLM": "phi",
+ }
+ 
+ 
+@@ -68,6 +75,7 @@
+     "LlamaForCausalLM": TtLlamaAttention,
+     "LlamaForConditionalGeneration": TtLlamaAttention,
+     "Qwen2ForCausalLM": TtLlamaAttention,
++    "PhiForCausalLM": TtPhiAttention,
+ }
+ 
+ 
+@@ -75,6 +83,7 @@
+     "LlamaForCausalLM": TtLlamaDecoderLayer,
+     "LlamaForConditionalGeneration": TtLlamaDecoderLayer,
+     "Qwen2ForCausalLM": TtLlamaDecoderLayer,
++    "PhiForCausalLM": TtPhiDecoderLayer,
+ }
+ 
+ 
+@@ -82,6 +91,7 @@
+     "LlamaForCausalLM": TtRMSNorm,
+     "LlamaForConditionalGeneration": TtRMSNorm,
+     "Qwen2ForCausalLM": TtRMSNorm,
++    "PhiForCausalLM": TtLayerNorm,
+ }
+ 
+ 
+@@ -89,6 +99,7 @@
+     "LlamaForCausalLM": TtLlamaEmbedding,
+     "LlamaForConditionalGeneration": TtLlamaEmbedding,
+     "Qwen2ForCausalLM": TtLlamaEmbedding,
++    "PhiForCausalLM": TtLlamaEmbedding,
+ }
+ 
+ 
+@@ -96,6 +107,7 @@
+     "LlamaForCausalLM": LlamaLikeConfig,
+     "LlamaForConditionalGeneration": LlamaLikeConfig,
+     "Qwen2ForCausalLM": LlamaLikeConfig,
++    "PhiForCausalLM": PhiConfig,
+ }
+ 
+ 
+@@ -103,6 +115,7 @@
+     "LlamaForCausalLM": "rope",
+     "LlamaForConditionalGeneration": "rope",
+     "Qwen2ForCausalLM": "rope",
++    "PhiForCausalLM": "partial_rotary",
+ }
+ 
+ 
+@@ -110,6 +123,7 @@
+     "LlamaForCausalLM": False,
+     "LlamaForConditionalGeneration": False,
+     "Qwen2ForCausalLM": False,
++    "PhiForCausalLM": True,
+ }
+ 
+ 
+@@ -117,6 +131,7 @@
+     "LlamaForCausalLM": False,
+     "LlamaForConditionalGeneration": False,
+     "Qwen2ForCausalLM": False,
++    "PhiForCausalLM": True,
+ }
+ 
+ 
+@@ -124,6 +139,7 @@
+     "LlamaForCausalLM": False,
+     "LlamaForConditionalGeneration": False,
+     "Qwen2ForCausalLM": False,
++    "PhiForCausalLM": True,
+ }
+ 
+ 
+@@ -131,6 +147,7 @@
+     "LlamaForCausalLM": False,
+     "LlamaForConditionalGeneration": False,
+     "Qwen2ForCausalLM": False,
++    "PhiForCausalLM": True,
+ }
+ 
+ 
+@@ -138,6 +155,7 @@
+     "LlamaForCausalLM": False,
+     "LlamaForConditionalGeneration": False,
+     "Qwen2ForCausalLM": False,
++    "PhiForCausalLM": True,
+ }
+ 
+ 
+@@ -145,6 +163,7 @@
+     "LlamaForCausalLM": False,
+     "LlamaForConditionalGeneration": False,
+     "Qwen2ForCausalLM": False,
++    "PhiForCausalLM": True,
+ }
+ 
+ 
+@@ -152,6 +171,7 @@
+     "LlamaForCausalLM": False,
+     "LlamaForConditionalGeneration": False,
+     "Qwen2ForCausalLM": False,
++    "PhiForCausalLM": True,
+ }
+ 
+ 
+@@ -159,6 +179,7 @@
+     "LlamaForCausalLM": False,
+     "LlamaForConditionalGeneration": False,
+     "Qwen2ForCausalLM": False,
++    "PhiForCausalLM": True,
+ }
+ 
+ 
+@@ -166,6 +187,7 @@
+     "LlamaForCausalLM": False,
+     "LlamaForConditionalGeneration": False,
+     "Qwen2ForCausalLM": False,
++    "PhiForCausalLM": True,
+ }
+ 
+ 
+@@ -173,6 +195,7 @@
+     "LlamaForCausalLM": False,
+     "LlamaForConditionalGeneration": False,
+     "Qwen2ForCausalLM": False,
++    "PhiForCausalLM": True,
+ }
+ 
+ 
+@@ -180,6 +203
