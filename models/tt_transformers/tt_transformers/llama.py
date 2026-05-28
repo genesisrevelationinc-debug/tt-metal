@@ -1,113 +1,101 @@
 # SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
 
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-License-Identifier: Apache-2.0
 
+import math
 import torch
+import ttnn
+from typing import List, Optional, Tuple
 from models.tt_transformers.tt.common import (
     precompute_freqs,
-    prepare_rotary_embedding,
-    prepare_rotary_embedding_head_dim,
+    precompute_freqs_for_finetune,
     sample,
-    HostProfiler,
-    num_to_core,
-)
-from models.tt_transformers.tt.llama_attention import TtLlamaAttention
-from models.tt_transformers.tt.llama_mlp import TtLlamaMLP
-from models.tt_transformers.tt.phi_mlp import TtPhiMLP
-from models.tt_transformers.tt.llama_decoder import TtLlamaDecoder
-from models.tt_transformers.tt.model_config import ModelArgs
+    HostEmbedding,
+    PagedAttentionConfig,
+from models.tt_transformers.tt.llama_decoder import TtTransformerBlock
+from models.tt_transformers.tt.llama_embedding import TtLlamaEmbedding
+from models.tt_transformers.tt.llama_lm_head import TtLlamaLMHead
+from models.tt_transformers.tt.model_config import ModelConfig
+
 
 class TtLlamaModelForGeneration:
-    def __init__(self, model_args, device, mesh_device, cache_path=None, prefetcher_setup=None):
-        self.model_args = model_args
-        self.is_phi = hasattr(model_args, "is_phi") and model_args.is_phi
-        self.device = device
-        self.mesh_device = mesh_device
-        self.cache_path = cache_path
-        self.prefetcher_setup = prefetcher_setup
-
-        # Build model
-        if self.is_phi:
-            self.model = TtPhiModel(self.model_args, self.device, self.mesh_device, cache_path=self.cache_path)
-        else:
-            self.model = TtLlamaModel(self.model_args, self.device, self.mesh_device, cache_path=self.cache_path)
-
-        # Load tokenizer
-        self.tokenizer = model_args.tokenizer
-        self.vocab_size = self.model_args.vocab_size
+        self,
+        configuration,
+        state_dict,
+        model_config: Optional[ModelConfig] = None,
+        paged_attention_config: Optional[PagedAttentionConfig] = None,
+        page_table=None,
+        kv_cache=None,
+        self.configuration = configuration
+        self.state_dict = state_dict
+        self.paged_attention_config = paged_attention_config
+        self.model_config = model_config or ModelConfig()
+        self.page_table = page_table
+        self.kv_cache = kv_cache
+        self.current = 0
+        self.mesh_device = self.configuration.mesh_device
 
         # Precompute freqs
-        freqs_fn = prepare_rotary_embedding_head_dim if self.is_phi else prepare_rotary_embedding
-        if self.is_phi:
-            freqs_fn = prepare_rotary_embedding_head_dim
-        self.freqs = freqs_fn(
-            self.model_args.max_seq_len,
-            self.model_args.head_dim,
-            self.model_args.rope_theta,
+        if hasattr(configuration, "rope_scaling") and configuration.rope_scaling is not None:
+            self.freqs = precompute_freqs_for_finetune(configuration)
+        else:
+            self.freqs = precompute_freqs(configuration)
+
+        # Embedding
+        self.tt_model_name = "tt_llama_model"
+        # Transformer blocks
+        self.transformer_blocks = [
+            TtTransformerBlock(
+                model_config=self.model_config,
+                configuration=configuration,
+                state_dict=state_dict,
+                layer_num=i,
+
+        # LM Head
+        self.lm_head = TtLlamaLMHead(
+            model_config=self.model_config,
+            configuration=configuration,
+            state_dict=state_dict,
+            state_dict_prefix="",
+    def forward(
+        self,
+        tokens: ttnn.Tensor,
+        mask: Optional[ttnn.Tensor] = None,
+        current_pos: int = 0,
+        rot_mat=None,
+        transformation_mat=None,
+        for block in self.transformer_blocks:
+            h = block(
+                h,
+                mask=mask,
+                current_pos=current_pos,
+                rot_mat=rot_mat,
+                transformation_mat=transformation_mat,
+        # LM head
+        logits = self.lm_head(
+            h,
+            mask=mask,
+            return_logits=return_logits,
         )
-
-        self.current_length = 0
-        self.prefetcher_setup = prefetcher_setup
-        self.current_length = 0
-
-    def forward(self, tokens, start_pos, enable_persistent_kernel=True):
-        return self.model(tokens, start_pos, self.freqs, enable_persistent_kernel=enable_persistent_kernel)
-class TtLlamaModel:
-    def __init__(self, model_args, device, mesh_device, cache_path=None):
-        self.model_args = model_args
-        self.is_phi = hasattr(model_args, "is_phi") and model_args.is_phi
-        self.device = device
-        self.mesh_device = mesh_device
-        self.cache_path = cache_path
-        self.layers = []
-        for layer_id in range(self.model_args.n_layers):
-            layer = TtLlamaDecoder(
-                self.device, self.mesh_device, self.model_args, layer_id, cache_path=self.cache_path,
-                mlp_cls=TtPhiMLP if self.is_phi else TtLlamaMLP,
-                attention_cls=None,  # Use default attention for now
-                is_phi=self.is_phi,
-            )
-            self.layers.append(layer)
-
-        self.norm = TtLlamaRMSNorm(
-            device=self.device,
-            state_dict=self.state_dict,
-            state_dict_prefix=self.model_args.norm_name,
-            state_dict_prefix=self.model_args.norm_name,
-            weight_cache_path=self.cache_path,
-            layer_num=None,
+        return logits
+        self,
+        tokens: ttnn.Tensor,
+        start_pos: int,
+        mask: Optional[ttnn.Tensor] = None,
+        current_pos: int = 0,
+        rot_mat=None,
+        transformation_mat=None,
+        for block in self.transformer_blocks:
+            h = block(
+                h,
+                mask=mask,
+                current_pos=current_pos,
+                rot_mat=rot_mat,
+                transformation_mat=transformation_mat,
+        # LM head
+        logits = self.lm_head(
+            h,
+            mask=mask,
+            return_logits=return_logits,
         )
-
-        # Load lm_head
-        lm_head_name = self.model_args.lm_head_name
-        lm_head_name = self.model_args.lm_head_name
-        self.lm_head = TtLlamaMLP(
-            device=self.device,
-            dim=self.model_args.dim,
-            state_dict=self.state_dict,
-            weight_cache_path=self.cache_path,
-            weight_key=lm_head_name,
-            weight_key=lm_head_name,
-            bias_key=None,
-        )
-        self.tok_embeddings = TtLlamaEmbedding(
-            device=self.device,
-            state_dict=self.state_dict,
-            state_dict_prefix=self.model_args.tok_embeddings_name,
-            state_dict_prefix=self.model_args.tok_embeddings_name,
-            weight_cache_path=self.cache_path,
-            args=self.model_args,
-        x = self.lm_head(x)
-
-        return x
-
-
-class TtPhiModel(TtLlamaModel):
-    def __init__(self, model_args, device, mesh_device, cache_path=None):
-        super().__init__(model_args, device, mesh_device, cache_path=cache_path)
-
-
-class TtPhiModelForGeneration(TtLlamaModelForGeneration):
-    def __init__(self, model_args, device, mesh_device, cache_path=None, prefetcher_setup=None):
-        super().__init__(model_args, device, mesh_device, cache_path=cache_path, prefetcher_setup=prefetcher_setup)
+        return logits
