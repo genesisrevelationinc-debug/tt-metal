@@ -1,43 +1,3 @@
-<div align="center">
-
-<h1>
-
-[Hardware](https://tenstorrent.com/hardware/blackhole) | [Install](./INSTALLING.md) |  [Discord](https://discord.gg/tvhGzHQwaj) | [Join Us](https://boards.greenhouse.io/tenstorrent/jobs/4155609007) | [Bounty $](https://github.com/tenstorrent/tt-metal/issues?q=is%3Aissue%20state%3Aopen%5Flabel%3Abug) | [Bounty $](https://github.com/tenstorrent/tt-metal/issues?q=is%3Aissue%20state%3Aopen%20label%3Abounty)
-
-</h1>
-
-<img src="https://raw.githubusercontent.com/tenstorrent/tt-metal/main/docs/source/common/_static/tt_nn_w_logo.png" alt="ttnn logo" height="180"/>
-
-**TT-NN** is a Python & C++ Neural Network OP library.
-
-<h3>
-
-[API Reference](https://docs.tenstorrent.com/tt-metal/latest/ttnn/index.html) | [Model Demos](./models/demos/)
-</h3>
-
-</div>
-
-## Featured Models
-
-The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
-
-### [Llama 3.3 70B (TP=32)](./models/demos/llama3_70b_galaxy)
-| Batch | Hardware | TTFT (MS) | T/S/U | Target<br>T/S/U | T/S | TT-Metalium Release | vLLM Tenstorrent Repo Release |
-|-------|----------|---------|-------|-----------------|-----|---------------------|-------------------------------|
-| 32    | [Galaxy (Wormhole)](https://tenstorrent.com/hardware/galaxy) | 53      | 72.5  | 80              | 2268.8  | [v0.65.0-rc7](https://github.com/tenstorrent/tt-metal/tree/v0.65.0-rc7) | [59be953](https://github.com/tenstorrent/vllm/tree/59be953f2bbd21e227f9ef4b779f545f9c3bf599/tt_metal) |
-
-### Qwen 2.5 7B (TP=2)
-[![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workfiles/sanity-tests.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml)
-
-<div align="center">
-
-<h1>
-
-[Hardware](https://tenstorrent.com/developers) | [Bounty $](https://github.com/tenstorrent/tt-metal/issues/q/is%3Aissue%20state%3Aopen%20label%3Abounty)
-
-</h3>
-
-<img src="https://raw.githubusercontent.com/tenstorrent/tt-metal/main/docs/source/common/_static/tt_nn_w_logo.png" alt="ttnn logo" height="180"/>
 [![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tenstorrent/tt-metal)
 
@@ -57,11 +17,9 @@ The Models team is focused on developing the following models, optimizing them f
 
 [API Reference](https://docs.tenstorrent.com/tt-metal/latest/ttnn/index.html) | [Model Demos](./models/demos/)
 
-</h3>
-
-</div>
-
 ## Featured Models
+
+The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
 
 The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
 
