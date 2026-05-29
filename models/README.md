@@ -37,7 +37,7 @@
 > - The t/s/u reported is the throughput of the first token generated after prefill, i.e. 1 / inter token latency.
 > - Performance numbers were collected using the tt-metal model demos (accessible via the model links). If running with a vLLM inference server, performance may be different.
 > - \* Blackhole software optimization is under active development.  Please join us in shaping the future of open source AI! <br> [\[Discord\]](https://discord.gg/tenstorrent) [\[Developer Hub\]](https://tenstorrent.com/developers)
-> - For more information regarding vLLM installation and environment creation visit the [Tenstorrent vLLM repository](https://github.com/tenstorrent/vllm/blob/dev/tt_metal/README.md).
+> - For more information regarding vLLM installation and environment creation visit the [Tenstorrent vLLM TT plugin README](https://github.com/tenstorrent/vllm/blob/dev/plugins/vllm-tt-plugin/README.md).
 
 ## Speech-to-Text
 
@@ -125,4 +125,20 @@ Visit the [releases](https://github.com/tenstorrent/tt-metal/tree/main/releases)
 - Models that are advertised as part of release, usually the demo models, are treated as first-class citizens, and therefore are treated as tests.
 - Model writers are responsible for ensuring their demo model tests are always passing. Any failure is treated highest-priority (or P0) failure.
 - Model writers are responsible for advertising which release tag (including release candidates) contains passing tests for their demo models.
+# LiquidAI LFM2.5-VL-1.6B Model Support
+
+This directory contains the LiquidAI LFM2.5-VL-1.6B model implementation.
+
+## Model Capabilities
+- **Document Comprehension**: Processes documents with variable resolution
+## Model Architecture
+The LFM2.5-VL-1.6B is a general-purpose vision-language model that can be used for OCR and document comprehension. It is designed to process both text and images with variable resolution.
+## Key Features
+- Multi-modal processing capabilities
+- Variable resolution support for document understanding
+- Image and text processing
+## Configuration
+Model: LFM2.5-VL-1.6B
+Version: 1.6B
+Architecture: Vision-Language model with text and image processing capabilities
 - Model writers are responsible for updating their perf metrics for the demo models at a regular cadence. Currently, the cadence is at least every 2 weeks.
