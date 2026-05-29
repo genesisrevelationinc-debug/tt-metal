@@ -1,6 +1,5 @@
 from .llvc_model import LLVCModel
-from .encoder import LightweightEncoder
-from .decoder import EfficientDecoder
+from .encoder import Encoder
+from .decoder import Decoder
 from .vocoder import Vocoder
-
-__all__ = ['LLVCModel', 'LightweightEncoder', 'EfficientDecoder', 'Vocoder']
+from .pitch_extractor import PitchExtractor
