@@ -1,0 +1,6 @@
+{
+  "name": "LiquidAI/LFM2.5-VL-1.6B",
+  "model_type": "Vision-Language Model",
+  "description": "General-purpose vision-language model for document comprehension and OCR with variable resolution processing",
+  "capabilities": "Image and text processing with variable resolution support"
+}
