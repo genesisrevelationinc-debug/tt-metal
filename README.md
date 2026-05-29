@@ -7,35 +7,24 @@
 
 [Hardware](https://tenstorrent.com/hardware/blackhole) | [Install](./INSTALLING.md) |  [Discord](https://discord.gg/tvhGzHQwaj) | [Join Us](https://boards.greenhouse.io/tenstorrent/jobs/4155609007) | [Bounty $](https://github.com/tenstorrent/tt-metal/issues?q=is%3Aissue%20state%3Aopen%20label%3Abounty)
 
+<h1>
+
++[!tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workflows/sally-tests.yaml)
+
 </h1>
 
-<img src="https://raw.githubusercontent.com/tenstorrent/tt-metal/main/docs/source/common/_static/tt_nn_w_logo.png" alt="ttnn logo" height="180"/>
-
-**TT-NN** is a Python & C++ Neural Network OP library.
 
 <h3>
 
-[API Reference](https://docs.tenstorrent.com/tt-metal/latest/ttnn/index.html) | [Model Demos](./models/demos/)
++[API Reference](https://docs.tenstorrent.com/tt-metal/latest/ttnn/index.html)
 
 </h3>
-
-</div>
-
 ## Featured Models
- model list.  
 
-## 
-## LLVC Model Implementation
+The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
 
-This repository now includes support for the LLVC (Low-Latency Low-Resource Voice Conversion) model implementation. 
-LLVC is a real-time voice conversion model optimized for low latency and CPU efficiency.
-
-### Features
-- Ultra-low latency real-time voice conversion
-- Based on RVC/QuickVC architecture with optimizations
-- MIT Licensed open source implementation
-
-Model Demos
+>[!IMPORTANT]
+> For a **full model list** see the **[Model Matrix](https://github.com/tenstorrent/tt-metal/blob/main/models/README.md)**, or visit the **[Developer Hub](https://tenstorrent.com/developers)**.
 
 >[!NOTE]
 > Performance Metrics:
