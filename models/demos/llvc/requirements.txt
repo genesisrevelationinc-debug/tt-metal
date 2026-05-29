@@ -1,10 +1,8 @@
-# Required dependencies for LLVC model demo
 torch>=2.0.0
-numpy>=1.21.0
-tqdm>=4.62.0
-soundfile>=0.10.0
-librosa>=0.9.0
-scipy>=1.7.0
-matplotlib>=3.5.0
 torchaudio>=2.0.0
-ttnn>=0.1.0
+numpy>=1.24.0
+librosa>=0.10.0
+soundfile>=0.12.0
+scipy>=1.10.0
+pyworld>=0.3.0
+resampy>=0.4.0
