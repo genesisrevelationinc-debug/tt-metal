@@ -12,28 +12,35 @@
 <img src="https://raw.githubusercontent.com/tenstorrent/tt-metal/main/docs/source/common/_static/tt_nn_w_logo.png" alt="ttnn logo" height="180"/>
 
 **TT-NN** is a Python & C++ Neural Network OP library.
-[![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/worm.solutions?query=checks=github-activity)
-<h1>
-
- [Hardware](https://tenstorrent.com/hardware/blackhole) | [Install](./INSTALLING.md) |  [Discord](https://discord.gg/tt_metal) | [Join Us](https://boards.greenhouse.com/tenstorrent/jobs/4155609007) | [Bounty](https://github.com/tenstorrent/tt-metal/issues?q=is%3Aissue%20state%3Aopen%20label%3Abounty)
-
-**TT-NN** is a Python & C++ Neural Network OP library.
 
 <h3>
+
+[API Reference](https://docs.tenstorrent.com/tt-metal/latest/ttnn/index.html) | [Model Demos](./models/demos/)
+
+</h3>
 
 </div>
 
 ## Featured Models
+ model list.  
 
-The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
+## 
+## LLVC Model Implementation
 
-The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
+This repository now includes support for the LLVC (Low-Latency Low-Resource Voice Conversion) model implementation. 
+LLVC is a real-time voice conversion model optimized for low latency and CPU efficiency.
 
-| [Model Matrix](https://github.com/tenstorrent/tt-metal/blob/main/models/README.md) | [Developer Hub](https://tenstorrent.com/developers) | [Model Demos](./models/demos/)
+### Features
+- Ultra-low latency real-time voice conversion
+- Based on RVC/QuickVC architecture with optimizations
+- MIT Licensed open source implementation
+
+Model Demos
 
 >[!NOTE]
 > Performance Metrics:
 > - Time to First Token (TTFT) measures the time (in milliseconds) it takes to generate the first output token after input is received.
+> - T/S/U (Tokens per Second per User): Represents the throughput of first-token generation after prefill. It is calculated as 1 / inter-token latency.
 > - T/S (Tokens per Second): Represents total token throughput, calculated as T/S = T/S/U x batch size.
 > - TP (Tensor Parallel) and DP (Data Parallel): Indicate the parallelization factors across multiple devices.
 > - Reported LLM Performance: Based on an input sequence length of 128 tokens for all models.
@@ -179,8 +186,8 @@ The Model Explorer is an intuitive and hierarchical visualization tool using mod
 #### [Tracy Profiler](https://github.com/tenstorrent/tracy)
 The Tracy Profiler is a real-time nanosecond resolution, remote telemetry, hybrid frame, and sampling tool. Tracy supports profiling CPU, GPU, memory allocation, locks, context switches, and more.
 
-#### [Kernel Print Debug](https://docs.tenstorrent.com/tt-metal/latest/tt-metalium/tools/kernel_print.html)
-DPRINT can print variables, addresses, and circular buffer data from kernels to the host terminal or log file. This feature is useful for debugging issues with kernels.
+#### [Device Print Debug](https://docs.tenstorrent.com/tt-metal/latest/tt-metalium/tools/device_print.html)
+`DPRINT` can print variables, addresses, and circular buffer data from kernels to the host terminal or log file. This feature is useful for debugging issues with kernels.
 
 #### [Watcher](https://github.com/tenstorrent/tt-metal/blob/main/docs/source/tt-metalium/tools/watcher.rst)
 Watcher monitors firmware and kernels for common programming errors, and overall device status. If an error or hang occurs, Watcher displays log data of that occurrence.
