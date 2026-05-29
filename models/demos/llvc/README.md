@@ -1,28 +1,19 @@
-# LLVC (Low-Latency Low-Resource Voice Conversion) on Tenstorrent
+# LLVC (Low-Latency Low-Resource Voice Conversion) Model Demo
 
-This directory contains the TTNN implementation of the LLVC (Low-Latency Low-Resource Voice Conversion) model for Tenstorrent hardware.
+This directory contains the implementation of the LLVC model using TTNN APIs for Tenstorrent hardware.
 
 ## Overview
 
-LLVC is a real-time voice conversion model optimized for low latency and CPU efficiency. This implementation brings LLVC to Tenstorrent hardware using TTNN APIs for ultra-high-throughput, ultra-low-latency voice conversion.
+LLVC is a real-time voice conversion model optimized for low latency and CPU efficiency. This implementation brings the model to Tenstorrent hardware (Wormhole or Blackhole) using TTNN APIs.
 
 ## Features
 
-- **Streaming and non-streaming modes**: Supports both real-time chunked processing and full-context conversion
-- **F0-based and F0-free modes**: Optional pitch-dependent or pitch-independent conversion
-- **Optimized for Tenstorrent hardware**: Leverages TTNN fused ops, sharded memory layouts, and efficient tensor manipulation
+- Ultra-low latency voice conversion
+- Streaming-capable architecture
+- Supports both streaming and non-streaming modes
+- Optimized for N150 and N300 Tenstorrent hardware
+- Pitch extraction (F0-based and F0-free modes)
+- Vocoder integration
 
-## Architecture
-
-The LLVC model consists of:
-
-1. **Lightweight Encoder**: Optimized convolutional layers with reduced complexity
-2. **Content Encoder**: Extracts content features from source audio
-3. **Speaker Encoder**: Encodes target speaker characteristics
-4. **Decoder**: Reconstructs converted audio with target speaker voice
-5. **Vocoder**: Converts mel spectrograms to waveform (HiFi-GAN based)
-
-## Setup
-
-### Prerequisites
+## Directory Structure
 
