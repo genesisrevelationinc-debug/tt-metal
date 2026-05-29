@@ -1,4 +1,44 @@
-[![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workflows/all-post-commit-workflows.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/workflows/all-post-commit-workflows.yaml)
+<div align="center">
+
+<h1>
+
+[Hardware](https://tenstorrent.com/hardware/blackhole) | [Install](./INSTALLING.md) |  [Discord](https://discord.gg/tvhGzHQwaj) | [Join Us](https://boards.greenhouse.io/tenstorrent/jobs/4155609007) | [Bounty $](https://github.com/tenstorrent/tt-metal/issues?q=is%3Aissue%20state%3Aopen%5Flabel%3Abug) | [Bounty $](https://github.com/tenstorrent/tt-metal/issues?q=is%3Aissue%20state%3Aopen%20label%3Abounty)
+
+</h1>
+
+<img src="https://raw.githubusercontent.com/tenstorrent/tt-metal/main/docs/source/common/_static/tt_nn_w_logo.png" alt="ttnn logo" height="180"/>
+
+**TT-NN** is a Python & C++ Neural Network OP library.
+
+<h3>
+
+[API Reference](https://docs.tenstorrent.com/tt-metal/latest/ttnn/index.html) | [Model Demos](./models/demos/)
+</h3>
+
+</div>
+
+## Featured Models
+
+The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
+
+### [Llama 3.3 70B (TP=32)](./models/demos/llama3_70b_galaxy)
+| Batch | Hardware | TTFT (MS) | T/S/U | Target<br>T/S/U | T/S | TT-Metalium Release | vLLM Tenstorrent Repo Release |
+|-------|----------|---------|-------|-----------------|-----|---------------------|-------------------------------|
+| 32    | [Galaxy (Wormhole)](https://tenstorrent.com/hardware/galaxy) | 53      | 72.5  | 80              | 2268.8  | [v0.65.0-rc7](https://github.com/tenstorrent/tt-metal/tree/v0.65.0-rc7) | [59be953](https://github.com/tenstorrent/vllm/tree/59be953f2bbd21e227f9ef4b779f545f9c3bf599/tt_metal) |
+
+### Qwen 2.5 7B (TP=2)
+[![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workfiles/sanity-tests.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml)
+
+<div align="center">
+
+<h1>
+
+[Hardware](https://tenstorrent.com/developers) | [Bounty $](https://github.com/tenstorrent/tt-metal/issues/q/is%3Aissue%20state%3Aopen%20label%3Abounty)
+
+</h3>
+
+<img src="https://raw.githubusercontent.com/tenstorrent/tt-metal/main/docs/source/common/_static/tt_nn_w_logo.png" alt="ttnn logo" height="180"/>
+[![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tenstorrent/tt-metal)
 
 <div align="center">
@@ -26,7 +66,7 @@
 The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
 
 >[!IMPORTANT]
-> For a **full model list** see the **[Model Matrix](https://github.com/tenstorrent/tt-metal/tree/main/models/README.md)**, or visit the **[Developer Hub](https://tenstorrent.com/developers)**.
+> For a **full model list** see the **[Model Matrix](https://github.com/tenstorrent/tt-metal/blob/main/models/README.md)**, or visit the **[Developer Hub](https://tenstorrent.com/developers)**.
 
 >[!NOTE]
 > Performance Metrics:
@@ -65,7 +105,7 @@ The Models team is focused on developing the following models, optimizing them f
 
 Blackhole software optimization is under active development.  Please join us in shaping the future of open source AI! <br> [\[Discord\]](https://discord.gg/tenstorrent) [\[Developer Hub\]](https://tenstorrent.com/developers)
 
-For more information regarding vLLM installation and environment creation visit the [Tenstorrent vLLM repository](https://github.com/tenstorrent/vllm/blob/dev/tt_metal/README.md).
+For more information regarding vLLM installation and environment creation visit the [Tenstorrent vLLM TT plugin README](https://github.com/tenstorrent/vllm/blob/dev/plugins/vllm-tt-plugin/README.md).
 
 ## Model Updates
 
@@ -177,8 +217,8 @@ The Model Explorer is an intuitive and hierarchical visualization tool using mod
 #### [Tracy Profiler](https://github.com/tenstorrent/tracy)
 The Tracy Profiler is a real-time nanosecond resolution, remote telemetry, hybrid frame, and sampling tool. Tracy supports profiling CPU, GPU, memory allocation, locks, context switches, and more.
 
-#### [Kernel Print Debug](https://docs.tenstorrent.com/tt-metal/latest/tt-metalium/tools/kernel_print.html)
-DPRINT can print variables, addresses, and circular buffer data from kernels to the host terminal or log file. This feature is useful for debugging issues with kernels.
+#### [Device Print Debug](https://docs.tenstorrent.com/tt-metal/latest/tt-metalium/tools/device_print.html)
+`DPRINT` can print variables, addresses, and circular buffer data from kernels to the host terminal or log file. This feature is useful for debugging issues with kernels.
 
 #### [Watcher](https://github.com/tenstorrent/tt-metal/blob/main/docs/source/tt-metalium/tools/watcher.rst)
 Watcher monitors firmware and kernels for common programming errors, and overall device status. If an error or hang occurs, Watcher displays log data of that occurrence.
@@ -198,7 +238,11 @@ Inspector provides insights into host runtime. It logs necessary data for invest
 
 | Release | Release Date | FW Version | KMD Version | SMI Version |
 |:---------:|:--------------:|:------------:|:--------:|:--------:|
-| 0.66.0 | ETA Jan 30, 2026 | 19.2.0 | 2.5.0 | 3.0.38 |
+| 0.68.0 | ETA Apr 30, 2026 | 19.2.0 | 2.5.0 | 3.0.38 |
+| [0.67.4](https://github.com/tenstorrent/tt-metal/releases/tag/v0.67.4) | Mar 30, 2026 | 19.2.0 | 2.5.0 | 3.0.38 |
+| [0.67.0](https://github.com/tenstorrent/tt-metal/releases/tag/v0.67.0) | Mar 25, 2026 | 19.2.0 | 2.5.0 | 3.0.38 |
+| [0.66.0](https://github.com/tenstorrent/tt-metal/releases/tag/v0.66.0) | Feb 18, 2026 | 19.2.0 | 2.5.0 | 3.0.38 |
+| [0.65.1](https://github.com/tenstorrent/tt-metal/releases/tag/v0.65.1) | Jan 12, 2026 | 19.2.0 | 2.5.0 | 3.0.38 |
 | [0.65.0](https://github.com/tenstorrent/tt-metal/releases/tag/v0.65.0) | Dec 15, 2025 | 19.2.0 | 2.5.0 | 3.0.38 |
 | [0.64.5](https://github.com/tenstorrent/tt-metal/releases/tag/v0.64.5) | Dec  1, 2025 | 18.12.0 | 2.4.1 | 3.0.32 |
 | [0.64.4](https://github.com/tenstorrent/tt-metal/releases/tag/v0.64.4) | Nov 24, 2025 | 18.12.0 | 2.4.1 | 3.0.32 |
