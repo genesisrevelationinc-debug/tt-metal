@@ -1,3 +1,17 @@
+<!-- Added RT-DETR section to the README -->
+## RT-DETR Model Implementation
+
+This repository includes an implementation of RT-DETR (Real-Time DEtection TRansformer) using TTNN APIs. 
+The implementation is optimized for Tenstorrent hardware and includes the following features:
+
+- End-to-end object detection using RT-DETR architecture
+- Support for COCO dataset evaluation
+- Memory optimization for convolutional and attention layers
+- Performance profiling capabilities
+
+### Directory Structure
+
+
 [![tt-metal CI](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml/badge.svg)](https://github.com/tenstorrent/tt-metal/actions/workflows/sanity-tests.yaml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tenstorrent/tt-metal)
 
@@ -17,9 +31,11 @@
 
 [API Reference](https://docs.tenstorrent.com/tt-metal/latest/ttnn/index.html) | [Model Demos](./models/demos/)
 
-## Featured Models
+</h3>
 
-The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
+</div>
+
+## Featured Models
 
 The Models team is focused on developing the following models, optimizing them for performance, accuracy, and compatibility. Follow each model link for more details.
 
