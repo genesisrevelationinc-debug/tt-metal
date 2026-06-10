@@ -1,28 +1,27 @@
 # LLVC (Low-Latency Low-Resource Voice Conversion) on Tenstorrent
 
-This directory contains the TTNN implementation of the [LLVC (Low-Latency Low-Resource Voice Conversion)](https://github.com/KoeAI/LLVC) model for Tenstorrent hardware.
+This directory contains the TTNN implementation of the LLVC (Low-Latency Low-Resource Voice Conversion) model for Tenstorrent hardware.
 
 ## Overview
 
-LLVC is a real-time voice conversion model optimized for low latency and CPU efficiency. This implementation brings LLVC to Tenstorrent hardware (Wormhole N150/N300 and Blackhole) using TTNN APIs for ultra-high-throughput, ultra-low-latency voice conversion.
+LLVC is a real-time voice conversion model from Koe AI, optimized for low latency and CPU efficiency. This implementation brings LLVC to Tenstorrent hardware (Wormhole/Blackhole) using TTNN APIs for ultra-high-throughput, ultra-low-latency voice conversion.
 
-### Key Features
+## Features
 
-- **Ultra-low latency**: Real-time voice conversion with minimal delay
-- **Streaming support**: True streaming inference with chunked processing
-- **Dual mode**: Supports both streaming and non-streaming modes
-- **High quality**: Natural voice conversion with speaker similarity > 70%
-- **Efficient**: Optimized for Tenstorrent hardware with sharded memory configs
+- **Streaming and non-streaming modes**: Real-time chunked processing or full-context conversion
+- **F0-based and F0-free modes**: Optional pitch-dependent or pitch-independent conversion
+- **Optimized for Tenstorrent hardware**: Leverages TTNN fused ops, sharded memory, and efficient tensor manipulation
+- **High performance**: Targets >50 tokens/sec, RTF < 0.3, latency < 100ms for streaming
 
 ## Architecture
 
-The LLVC model consists of:
+The model consists of:
 
 1. **Lightweight Encoder**: Optimized convolutional layers with reduced complexity
 2. **Content Encoder**: Extracts content features from source audio
 3. **Speaker Encoder**: Extracts speaker embedding from target speaker
-4. **Decoder**: Generates converted audio features
-5. **Vocoder**: Converts features to waveform (HiFi-GAN based)
+4. **Decoder**: Reconstructs audio with target speaker characteristics
+5. **Vocoder**: Converts mel-spectrogram to waveform (HiFi-GAN based)
 
-### Streaming Architecture
+## Directory Structure
 
