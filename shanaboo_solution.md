@@ -14,120 +14,146 @@
 +#include "ckernel_sfpu_log.h"
  #include "ckernel_sfpu_recip.h"
  #include "ckernel_sfpu_sqrt.h"
- #include "sfpi.h"
-@@ -15,6 +16,7 @@
+ #include "noc_nonblocking_api.h"
+@@ -14,6 +15,7 @@
  using namespace sfpi;
  
  namespace ckernel {
 +
  namespace sfpu {
  
- template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
-@@ -22,6 +24,7 @@
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+@@ -21,7 +23,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -41,6 +44,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -33,7 +35,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -58,6 +62,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -45,7 +47,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -75,6 +80,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -57,7 +59,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -92,6 +98,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -69,7 +71,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -109,6 +116,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -81,7 +83,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -126,6 +134,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -93,7 +95,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -143,6 +152,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -105,7 +107,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -160,6 +170,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -117,7 +119,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -177,6 +188,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -129,7 +131,7 @@
      // SFPU microcode
-     // New version neighboring a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -194,6 +206,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -141,7 +143,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -211,6 +224,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -153,7 +155,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -228,6 +242,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -165,7 +167,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original Pade approximant.
-+    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
-     vFloat a = dst_reg[0];
- 
-     // using 4th order polynomial, max error: 1.5e-5%
-@@ -245,6 +260,7 @@
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -177,7 +179,7 @@
      // SFPU microcode
-     // New version uses a polynomial which is more accurate
-     // than the original
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
+     }
+@@ -189,7 +191,7 @@
+     // SFPU microcode
+     for (int d = 0; d < ITERATIONS; d++) {
+         vFloat v = dst_reg[0];
+-        v = 1.0f / v;
++        v = sfpi::recip(v);
+         dst_reg[0] = v;
+         dst_reg++;
