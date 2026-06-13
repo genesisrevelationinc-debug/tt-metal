@@ -7,112 +7,127 @@
  //
  // SPDX-License-Identifier: Apache-2.0
  
-@@ -10,6 +10,7 @@
+@@ -6,6 +6,7 @@
+ #define CKERNEL_SFPU_TRIGONOMETRY_H
+ 
+ #include "ckernel.h"
++#include "ckernel_sfpu_log.h"
  #include "ckernel_sfpu_recip.h"
  #include "ckernel_sfpu_sqrt.h"
- #include "ckernel_sfpu_log.h"
-+#include "ckernel_sfpu_log1p.h"
- 
+ #include "sfpi.h"
+@@ -15,6 +16,7 @@
  using namespace sfpi;
  
-@@ -155,6 +156,7 @@
-     }
- }
+ namespace ckernel {
++
+ namespace sfpu {
  
-+// Optimized atanh using log1p for numerical stability
  template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
- inline void _calculate_atanh_(const int iterations)
- {
-@@ -162,18 +164,18 @@
-     {
-         vFloat v = dst_reg[0];
+@@ -22,6 +24,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
  
--        // atanh(x) = 0.5 * ln((1 + x) / (1 - x))
--        vFloat num = vConst1 + v;
--        vFloat den = vConst1 - v;
--        vFloat tmp = _sfpu_reciprocal_<APPROXIMATION_MODE ? 0 : 2>(den);
--        num = num * den;
--        den = _calculate_log_body_no_init_(num);
--        v_if(den < 0.0f) { den = -den; }
--        v_endif;
--        v = 0.5f * den;
-+        // atanh(x) = 0.5 * log((1+x)/(1-x))
-+        // Use log1p for numerical stability:
-+        // atanh(x) = 0.5 * log1p(2*x / (1-x))
-+        vFloat den = vConst1 - v;
-+        vFloat two_x = 2.0f * v;
-+        vFloat ratio = two_x * _sfpu_reciprocal_<APPROXIMATION_MODE ? 0 : 2>(den);
-+        
-+        // Use log1p for better accuracy near x = 0 and x = ±1
-+        v = 0.5f * _calculate_log1p_body_<APPROXIMATION_MODE>(ratio);
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -41,6 +44,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
  
--        // atanh(-x) = -atanh(x)
-+        // atanh is odd: atanh(-x) = -atanh(x), sign handled by the formula above
-         dst_reg[0] = v;
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -58,6 +62,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
  
-         dst_reg++;
-@@ -181,6 +183,7 @@
-     }
- }
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -75,6 +80,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
  
-+// Optimized asinh using log1p for numerical stability
- template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
- inline void _calculate_asinh_(const int iterations)
- {
-@@ -188,16 +191,31 @@
-     {
-         vFloat v = dst_reg[0];
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -92,6 +98,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
  
--        // asinh(x) = ln(x + sqrt(x^2 + 1))
--        vFloat tmp = v * v;
--        tmp = tmp + vConst1;
--        tmp = _calculate_sqrt_body_<APPROXIMATION_MODE>(tmp);
--        tmp = tmp + sfpi::abs(v);
--        auto res = _calculate_log_body_no_init_(tmp);
-+        vFloat abs_v = sfpi::abs(v);
-+        vFloat result;
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -109,6 +116,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
  
--        // asinh(-x) = -asinh(x)
--        dst_reg[0] = res;
-+        // For large |x|, use: asinh(x) = sign(x) * (log(2*|x|) + log1p(1/(4*x^2))/2)
-+        // For small to moderate |x|, use: asinh(x) = sign(x) * log1p(|x| + x^2/(1+sqrt(1+x^2)))
-+        // Simplified stable form: asinh(x) = sign(x) * log1p(|x| * (1 + |x|/(1+sqrt(1+x^2))))
-+        
-+        // Compute sqrt(1 + x^2) stably
-+        vFloat x2 = v * v;
-+        vFloat sqrt_1px2 = _calculate_sqrt_body_<APPROXIMATION_MODE>(x2 + vConst1);
-+        
-+        // asinh(x) = sign(x) * log(|x| + sqrt(x^2 + 1))
-+        // For numerical stability, rewrite as:
-+        // log(|x| + sqrt(x^2+1)) = log1p(|x| - 1 + sqrt(x^2+1)) when |x| is not too large
-+        // Better: use the identity that for all x:
-+        // asinh(x) = sign(x) * log1p(|x| + x^2/(1+sqrt(1+x^2)))
-+        
-+        vFloat denom = vConst1 + sqrt_1px2;
-+        vFloat correction = x2 / denom;
-+        vFloat arg = abs_v + correction;
-+        
-+        result = _calculate_log1p_body_<APPROXIMATION_MODE>(arg - vConst1);
-+        
-+        // Restore sign: asinh(-x) = -asinh(x)
-+        dst_reg[0] = result;
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -126,6 +134,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
  
-         dst_reg++;
-     }
-@@ -210,14 +228,24 @@
-     {
-         vFloat v = dst_reg[0];
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -143,6 +152,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
  
--        // acosh(x) = log(x + sqrt(x^2 - 1))
--        sfpi::vFloat tmp = v * v;
--        tmp = tmp - sfpi::vConst1;
--        tmp = _calculate_sqrt_body_<APPROXIMATION_MODE>(tmp);
--        tmp = tmp + v;
--        sfpi::dst_reg[0] = _calculate_log_body_no_init_(tmp);
-+        // acosh(x) = log(x + sqrt(x^2 - 1)) for x >= 1
-+        // For numerical stability near x = 1, use:
-+        // acosh(x) = log1p(x - 1 + sqrt((x-1)*(x+1)))
-+        // Or equivalently: acosh(x) = 2 * asinh(sqrt((x-1)/2)) for x near 1
-+        // Stable form: acosh(x) = log1p(x - 1 + sqrt(x^2 - 1))
-+        
-+        vFloat x_minus_1 = v - vConst1;
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -160,6 +170,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
+ 
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -177,6 +188,7 @@
+     // SFPU microcode
+     // New version neighboring a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
+ 
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -194,6 +206,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
+ 
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -211,6 +224,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
+ 
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -228,6 +242,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original Pade approximant.
++    // This is kept for backward compatibility; prefer _calculate_log1p_body_ for small inputs.
+     vFloat a = dst_reg[0];
+ 
+     // using 4th order polynomial, max error: 1.5e-5%
+@@ -245,6 +260,7 @@
+     // SFPU microcode
+     // New version uses a polynomial which is more accurate
+     // than the original
