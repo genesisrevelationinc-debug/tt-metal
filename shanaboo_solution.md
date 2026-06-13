@@ -5,7 +5,7 @@
 -// SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
 +// SPDX-FileCopyrightText: © 2023-2025 Tenstorrent Inc.
  //
- // SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: Apache-2.0
  
 @@ -6,6 +6,7 @@
  #define CKERNEL_SFPU_TRIGONOMETRY_H
@@ -13,149 +13,96 @@
  #include "ckernel.h"
 +#include "ckernel_sfpu_log.h"
  #include "ckernel_defs.h"
- #include "noc_nonblocking_api.h"
- #include <sfpi.h>
-@@ -15,6 +16,7 @@ using namespace sfpi;
+ #include "ckernel_sfpu_recip.h"
+ #include "ckernel_sfpu_sqrt.h"
+@@ -15,6 +16,7 @@
+ using namespace sfpi;
+ 
  namespace ckernel {
++
  namespace sfpu {
  
-+// Forward declarations
- template <bool APPROXIMATION DOLPHIN, int ITERATIONS = 8>
- inline void _calculate_cosine_();
- template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
-@@ -25,6 +27,8 @@ template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
- inline void _calculate_atan_();
- template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
- inline void _calculate_atan2_();
-+template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
-+inline void _calculate_log1p_();
- 
- // Taylor series for sin/cos
- //  - use symmetery to get into range [0, pi/2]
-@@ -261,6 +265,7 @@ sfpi_inline vFloat _calculate_sqrt_body_(vFloat val)
-     return val;
- }
- 
-+// DEPRECATED: Use _calculate_log_body_no_init_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE>
- sfpi_inline vFloat _calculate_log_body_no_init_(vFloat in)
- {
-@@ -293,6 +298,7 @@ sfpi_inline vFloat _calculate_log_body_no_init_(vFloat in)
-     return vConst1 + (x * (vConst1 + x * partial));
- }
- 
-+// DEPRECATED: Use _calculate_log_body_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE>
- sfpi_inline vFloat _calculate_log_body_(vFloat in)
- {
-@@ -302,6 +308,7 @@ sfpi_inline vFloat _calculate_log_body_(vFloat in)
-     return _calculate_log_body_no_init_<APPROXIMATION_MODE>(in);
- }
- 
-+// DEPRECATED: Use _calculate_log_ from ckernel_sfpu_log.h instead
  template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_log_()
- {
-@@ -316,6 +323,7 @@ inline void _calculate_log_()
+@@ -73,6 +75,7 @@
      }
  }
  
-+// DEPRECATED: Use _calculate_log_with_base_ from ckernel_sfpu_log.h instead
++// DEPRECATED: Use _calculate_acosh_body_log1p_ for numerically stable implementation
  template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_log_with_base_()
- {
-@@ -333,6 +341,7 @@ inline void _calculate_log_with_base_()
+ inline void _calculate_acosh_body_(const uint dst) {
+     // SFPU microcode
+@@ -88,6 +91,38 @@
      }
  }
  
-+// DEPRECATED: Use _calculate_sigmoid_ from ckernel_sfpu_log.h instead
++// Numerically stable acosh(x) using log1p
++// acosh(x) = log1p((x-1) + sqrt((x-1)*(x+1)))  for x >= 1
++// For x near 1: avoids catastrophic cancellation in x + sqrt(x^2 - 1) - 1
++// For large x: avoids overflow in x^2
++template <bool APPROXIMATION_MODE, int ITERATIONS>
++inline void _calculate_acosh_body_log1p_(const uint dst) {
++    for (int d = 0; d < ITERATIONS; d++) {
++        vFloat inp = dst_reg[0];
++        
++        // For x >= 1, compute acosh(x) = log1p((x-1) + sqrt((x-1)*(x+1)))
++        // This is equivalent to log(x + sqrt(x^2 - 1)) but numerically stable
++        vFloat x_minus_1 = inp - 1.0f;
++        vFloat x_plus_1 = inp + 1.0f;
++        
++        // sqrt((x-1)*(x+1)) = sqrt(x^2 - 1)
++        vFloat prod = x_minus_1 * x_plus_1;
++        vFloat sqrt_term = _calculate_sqrt_body_<APPROXIMATION_MODE>(prod);
++        
++        // log1p((x-1) + sqrt(x^2-1)) = log(1 + (x-1) + sqrt(x^2-1)) = log(x + sqrt(x^2-1))
++        vFloat log1p_arg = x_minus_1 + sqrt_term;
++        
++        // Use log1p for better accuracy near x = 1
++        dst_reg[0] = _calculate_log1p_body_<APPROXIMATION_MODE>(log1p_arg);
++        
++        dst_reg++;
++    }
++}
++
++// DEPRECATED: Use _calculate_asinh_body_log1p_ for numerically stable implementation
  template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_sigmoid_()
- {
-@@ -348,6 +357,7 @@ inline void _calculate_sigmoid_()
+ inline void _calculate_asinh_body_(const uint dst) {
+     // SFPU microcode
+@@ -105,6 +140,46 @@
      }
  }
  
-+// DEPRECATED: Use _calculate_tanh_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_tanh_()
- {
-@@ -363,6 +373,7 @@ inline void _calculate_tanh_()
-     }
- }
- 
-+// DEPRECATED: Use _calculate_hardtanh_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_hardtanh_()
- {
-@@ -383,6 +394,7 @@ inline void _calculate_hardtanh_()
-     }
- }
- 
-+// DEPRECATED: Use _calculate_sign_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_sign_()
- {
-@@ -399,6 +411,7 @@ inline void _calculate_sign_()
-     }
- }
- 
-+// DEPRECATED: Use _calculate_signbit_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_signbit_()
- {
-@@ -415,6 +428,7 @@ inline void _calculate_signbit_()
-     }
- }
- 
-+// DEPRECATED: Use _calculate_rsqrt_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_rsqrt_()
- {
-@@ -431,6 +445,7 @@ inline void _calculate_rsqrt_()
-     }
- }
- 
-+// DEPRECATED: Use _calculate_relu_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_relu_()
- {
-@@ -447,6 +462,7 @@ inline void _calculate_relu_()
-     }
- }
- 
-+// DEPRECATED: Use _calculate_leaky_relu_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_leaky_relu_()
- {
-@@ -464,6 +480,7 @@ inline void _calculate_leaky_relu_()
-     }
- }
- 
-+// DEPRECATED: Use _calculate_elu_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_elu_()
- {
-@@ -483,6 +500,7 @@ inline void _calculate_elu_()
-     }
- }
- 
-+// DEPRECATED: Use _calculate_erf_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_erf_()
- {
-@@ -499,6 +517,7 @@ inline void _calculate_erf_()
-     }
- }
- 
-+// DEPRECATED: Use _calculate_erfc_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_erfc_()
- {
-@@ -515,6 +534,7 @@ inline void _calculate_erfc_()
-     }
- }
- 
-+// DEPRECATED: Use _calculate_gelu_ from ckernel_sfpu_log.h instead
- template <bool APPROXIMATION_MODE, int ITERATIONS>
- inline void _calculate_g
++// Numerically stable asinh(x) using log1p
++// For |x| small: asinh(x) = log1p(x * (x + sqrt(1+x^2)) / (1 + sqrt(1+x^2)))
++// For |x| large: asinh(x) = sign(x) * (log(2|x|) + log1p(1/(2*x^2))/2)
++template <bool APPROXIMATION_MODE, int ITERATIONS>
++inline void _calculate_asinh_body_log1p_(const uint dst) {
++    for (int d = 0; d < ITERATIONS; d++) {
++        vFloat inp = dst_reg[0];
++        vFloat abs_inp = sfpi::abs(inp);
++        
++        // Compute sqrt(1 + x^2)
++        vFloat x_sq = inp * inp;
++        vFloat sqrt_term = _calculate_sqrt_body_<APPROXIMATION_MODE>(x_sq + 1.0f);
++        
++        // For asinh, we use: asinh(x) = sign(x) * log(|x| + sqrt(1+x^2))
++        // Rewrite using log1p for better accuracy:
++        // log(|x| + sqrt(1+x^2)) = log1p(|x| - 1 + sqrt(1+x^2)) when |x| >= 1
++        //                        = log1p(|x| * (|x| + sqrt(1+x^2)) / (1 + sqrt(1+x^2))) when |x| < 1
++        //
++        // Use the stable form: log(|x| + sqrt(1+x^2)) = log1p(|x| + sqrt(1+x^2) - 1)
++        // But to avoid cancellation, use:
++        // log(|x| + sqrt(1+x^2)) = log1p(|x| * (|x| + sqrt(1+x^2)) / (1 + sqrt(1+x^2)))
++        // when |x| is small, and log(|x| + sqrt(1+x^2)) directly when |x| is large
++        
++        vFloat sum = abs_inp + sqrt_term;
++        vFloat result;
++        
++        // For large |x|, direct log is fine; for small |x|, use log1p
++        // Threshold at |x| = 1 for simplicity
++        v_if (abs_inp > 1.0f) {
++            result = _calculate_log_body_no_init_(sum);
++        } v_else {
++            // log1p(|x| * (|x| + sqrt(1+x^2)) / (1 + sqrt(1+x^2)) - 1) is not right
++            // Instead: log(|x| + sqrt(1+x^2)) = log1p(|x| + sqrt(1+x^2) - 1)
++            // But this cancels. Better: use log1p directly with the difference
++            v
