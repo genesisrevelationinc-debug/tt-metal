@@ -2,90 +2,103 @@
 --- a/tt_metal/tt-llk/tt_llk_wormhole_b0/common/inc/sfpu/ckernel_sfpu_trigonometry.h
 +++ b/tt_metal/tt-llk/tt_llk_wormhole_b0/common/inc/sfpu/ckernel_sfpu_trigonometry.h
 @@ -1,4 +1,4 @@
--// SPDX-FileCopyrightText: © 2024 Tenstorrent AI
-+// SPDX-FileCopyrightText: © 2024 Tenstorrent AI
+-// SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
++// SPDX-FileCopyrightText: © 2023-2025 Tenstorrent Inc.
  //
  // SPDX-License-Identifier: Apache-2.0
  
 @@ -6,6 +6,7 @@
- #include "ckernel.h"
- #include "ckernel_defs.h"
- #include "ckernel_sfpu_log.h"
-+#include "ckernel_sfpu_log1p.h"
+ #define _CKERNEL_SFPU_TRIGONOMETRY_H_
+ 
  #include "ckernel_sfpu_recip.h"
- #include "ckernel_sfpu_sqrt.h"
- 
-@@ -15,6 +16,7 @@
- using namespace sfpi;
- 
- #include "sfpu/ckernel_sfpu_log.h"
-+#include "sfpu/ckernel_sfpu_log1p.h"
- #include "sfpu/ckernel_sfpu_recip.h"
- #include "sfpu/ckernel_sfpu_sqrt.h"
- 
-@@ -22,6 +24,7 @@
++#include "ckernel_sfpu_log.h"
  
  namespace ckernel {
  namespace sfpu {
-+
- template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
- inline void calculate_atanh() {
-     // SFPU microcode
-@@ -29,20 +32,22 @@
-         TTI_SFPLOAD(0, 3, 3, 0);
-         TTI_SFPMUL(0, 0, 9, 1, 0);
-         TTI_SFPSTORE(1, 0, 3, 0);  // Store intermediate result in lreg 0
--        // atanh(x) = 0.5 * ln((1 + x) / (1 - x))
--        // num = 1 + x
--        // den = 1 - x
--        // tmp = num / den
--        // result = 0.5 * ln(tmp)
--        sfpi::vFloat num = sfpi::vConst1 + sfpi::dst_reg[0];
--        sfpi::vFloat den = sfpi::vConst1 - sfpi::dst_reg[0];
--        sfpi::vFloat tmp = _sfpu_reciprocal_<APPROXIMATION_MODE ? 0 : 2>(den);
--        num = num * den;
--        den = _calculate_log_body_no_init_(num);
--        auto res = 0.5f * den;
--        sfpi::dst_reg[0] = res;
-+        // Numerically stable atanh(x) using log1p:
-+        // atanh(x) = 0.5 * log((1+x)/(1-x))
-+        //          = 0.5 * log1p(2x/(1-x))
-+        // For small x: 2x/(1-x) ≈ 2x, so log1p(2x/(1-x)) ≈ log1p(2x)
-+        // This avoids catastrophic cancellation near x = 0
-+        sfpi::vFloat x = sfpi::dst_reg[0];
-+        sfpi::vFloat one_minus_x = sfpi::vConst1 - x;
-+        // Compute 2x / (1 - x) using reciprocal
-+        sfpi::vFloat recip = _sfpu_reciprocal_<APPROXIMATION_MODE ? 0 : 2>(one_minus_x);
-+        sfpi::vFloat arg = 2.0f * x * recip;
-+        // Use log1p for numerical stability
-+        sfpi::vFloat result = _calculate_log1p_body_(arg);
-+        // Fold 0.5 into the result
-+        sfpi::dst_reg[0] = 0.5f * result;
-         TTI_SFPSTORE(0, 3, 3, 0);
-         sfpi::dst_reg++;
+@@ -13,6 +14,7 @@
+ using namespace sfpi;
+ 
+ #define PI (3.14159265358979323846f)
++#define LN2 (0.69314718055994530942f)
+ 
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _sfpu_sin_cos_rad_() {
+@@ -116,6 +118,7 @@
      }
-@@ -53,14 +58,24 @@
+ }
+ 
++// DEPRECATED: Kept for compatibility. Use _sfpu_asinh_log1p_ for new code.
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _sfpu_asinh_() {
      // SFPU microcode
-     for (int d = 0; d < ITERATIONS; d++) {
-         TTI_SFPLOAD(0, 3, 3, 0);
--        // asinh(x) = ln(x + sqrt(x^2 + 1))
--        sfpi::vFloat tmp = sfpi::dst_reg[0] * sfpi::dst_reg[0] + sfpi::vConst1;
--        tmp = _calculate_sqrt_body_<APPROXIMATION_MODE>(tmp);
--        tmp = tmp + sfpi::abs(sfpi::dst_reg[0]);
--        auto res = _calculate_log_body_no_init_(tmp);
--        // restore sign
--        v_if(sfpi::dst_reg[0] < 0.0f) { res = -res; }
-+        // Numerically stable asinh(x) using log1p:
-+        // asinh(x) = sign(x) * log(|x| + sqrt(x^2 + 1))
-+        // For small x: use log1p-based formulation to avoid cancellation
-+        // For large x: use sign(x) * (log(2|x|) + log1p(1/(2x^2)))
-+        sfpi::vFloat x = sfpi::dst_reg[0];
-+        sfpi::vFloat abs_x = sfpi::abs(x);
-+        sfpi::vFloat x2 = x * x;
-+        // sqrt(x^2 + 1) = |x| * sqrt(1 + 1/x^2) for |x| >= 1, or use direct for small
-+        // Use the identity: asinh(x) = sign(x) * log1p(|x| + x^2 / (sqrt(x^2+1) + |x|))
-+        // Simpler stable form: log(|x| + sqrt(x^2+1)) = log1p(|x| - 1 + sqrt(x^2+1)) for |x| near 1
-+        // Most stable: log1p(x^2 / (|x| + sqrt(x^2+1))) + log(|x|) for large, but let's use:
-+        // asinh(x) = sign(x) * log1p(|x| * (1 + sqrt(1 + 1/x^2))) for |x| >= 1
-+        // For general case, use: log1p(x^2 / (1 + sqrt(1 + x^2))) + log(|x|) ... no
-+        // Clean approach: compute sqrt(x^2+1), then use log1p(|x| + sqrt(x^2+1) - 1) when appropriate
+@@ -140,6 +143,7 @@
+     }
+ }
+ 
++// DEPRECATED: Kept for compatibility. Use _sfpu_acosh_log1p_ for new code.
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _sfpu_acosh_() {
+     // SFPU microcode
+@@ -162,6 +166,7 @@
+     }
+ }
+ 
++// DEPRECATED: Kept for compatibility. Use _sfpu_atanh_log1p_ for new code.
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _sfpu_atanh_() {
+     // SFPU microcode
+@@ -186,6 +191,168 @@
+     }
+ }
+ 
++// Numerically stable asinh using log1p
++// asinh(x) = sign(x) * log1p(x^2 / (1 + sqrt(1 + x^2)))
++// For |x| >= 1: asinh(x) = sign(x) * (log(|x|) + log1p(1/(2*x^2)) + 0.5*ln(2)) ... simplified to avoid overflow
++// For |x| < 1:  asinh(x) = sign(x) * log1p(|x| * (|x| / (1 + sqrt(1 + x^2))))
++template <bool APPROXIMATION_MODE, int ITERATIONS>
++inline void _sfpu_asinh_log1p_() {
++    for (int d = 0; d < ITERATIONS; d++) {
++        vFloat inp = dst_reg[0];
++        vFloat abs_inp = sfpi::abs(inp);
++        vFloat sign = 1.0f;
++        
++        // Extract sign
++        v_if(inp < 0.0f) {
++            sign = -1.0f;
++        }
++        v_endif;
++        
++        // For large |x|, use: asinh(x) ≈ sign(x) * (log(|x|) + log1p(1/(2*x^2)) + 0.5*ln(2))
++        // But we can simplify: asinh(x) = sign(x) * log(|x| + sqrt(x^2 + 1))
++        // For large x: sqrt(x^2 + 1) = |x| * sqrt(1 + 1/x^2) ≈ |x| * (1 + 1/(2*x^2))
++        // So |x| + sqrt(x^2+1) ≈ |x| * (2 + 1/(2*x^2)) = 2|x| * (1 + 1/(4*x^2))
++        // log(2|x| * (1 + 1/(4*x^2))) = log(2|x|) + log1p(1/(4*x^2))
++        // = log(|x|) + ln(2) + log1p(1/(4*x^2))
++        //
++        // For small |x|: asinh(x) = log1p(|x| * |x| / (1 + sqrt(1 + x^2)))
++        // This avoids catastrophic cancellation near 0
++        
++        // Threshold for "large" |x| to avoid overflow in x^2
++        // Use |x| >= 1.0 as threshold (safe, x^2 won't overflow for reasonable values)
++        vFloat result = 0.0f;
++        
++        // Compute x^2
++        vFloat x2 = abs_inp * abs_inp;
++        
++        // Check for large |x| where we need to avoid x^2 overflow
++        // For fp32, overflow happens around 1.84e19 for x^2, but we use a conservative threshold
++        v_if(abs_inp >= 1.0e9f) {
++            // Very large |x|: asinh(x) ≈ sign(x) * (log(|x|) + ln(2))
++            // More precisely: asinh(x) = sign(x) * log(2|x|) for very large x
++            // log(2|x|) = log(|x|) + ln(2)
++            result = _sfpu_log_<APPROXIMATION_MODE, 1>(&abs_inp);
++            result = result + LN2;
++        }
++        v_elseif(abs_inp >= 1.0f) {
++            // Medium large |x|: use log(|x|) + log1p(1/(2*x^2)) + 0.5*ln(2) approximation
++            // But more stably: compute via log1p
++            // asinh(x) = log(|x| + sqrt(x^2+1)) = log(|x| * (1 + sqrt(1 + 1/x^2)))
++            // = log(|x|) + log(1 + sqrt(1 + 1/x^2))
++            // For numerical stability, use:
++            // asinh(x) = log(|x|) + 0.5 * log1p(1/x^2) + correction
++            // Actually, let's use: log1p(|x| - 1 + sqrt(x^2+
