@@ -8,94 +8,154 @@
  // SPDX-License-Identifier: Apache-2.0
  
 @@ -6,6 +6,7 @@
- #include <limits>
+ #define CKERNEL_SFPU_TRIGONOMETRY_H
  
- #include "ckernel_sfpu_log.h"
-+#include "ckernel_sfpu_log1p.h"
- #include "ckernel_sfpu_recip.h"
- #include "ckernel_sfpu_sqrt.h"
- 
-@@ -14,6 +15,7 @@
+ #include "ckernel.h"
++#include "ckernel_sfpu_log.h"
+ #include "ckernel_defs.h"
+ #include "noc_nonblocking_api.h"
+ #include <sfpi.h>
+@@ -15,6 +16,7 @@ using namespace sfpi;
  namespace ckernel {
  namespace sfpu {
  
-+// atanh(x) = 0.5 * log1p(2*x / (1-x))  for |x| < 1
++// Forward declarations
+ template <bool APPROXIMATION DOLPHIN, int ITERATIONS = 8>
+ inline void _calculate_cosine_();
  template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
- inline void _calculate_atanh_(const int iterations) {
-     // SFPU microcode
-@@ -21,22 +23,27 @@
-         sfpi::vFloat v = sfpi::dst_reg[0];
-         sfpi::vFloat result = 0.0f;
+@@ -25,6 +27,8 @@ template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
+ inline void _calculate_atan_();
+ template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
+ inline void _calculate_atan2_();
++template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
++inline void _calculate_log1p_();
  
--        // atanh(x) = 0.5 * ln((1+x)/(1-x))
--        sfpi::vFloat num = sfpi::vConst1 + v;
--        sfpi::vFloat den = sfpi::vConst1 - v;
--        sfpi::vFloat tmp = _sfpu_reciprocal_<APPROXIMATION_MODE ? 0 : 2>(den);
--        num = num * tmp;
--        den = _calculate_log_body_no_init_(num);
--        result = 0.5f * den;
-+        // Compute 2*x / (1-x) using log1p for numerical stability
-+        sfpi::vFloat two_x = 2.0f * v;
-+        sfpi::vFloat one_minus_x = sfpi::vConst1 - v;
-+        // For x near 1, avoid division by zero by clamping
-+        sfpi::vFloat ratio = two_x * _sfpu_reciprocal_<APPROXIMATION_MODE ? 0 : 2>(one_minus_x);
-+        result = 0.5f * _calculate_log1p_body_(ratio);
+ // Taylor series for sin/cos
+ //  - use symmetery to get into range [0, pi/2]
+@@ -261,6 +265,7 @@ sfpi_inline vFloat _calculate_sqrt_body_(vFloat val)
+     return val;
+ }
  
-         sfpi::dst_reg[0] = result;
++// DEPRECATED: Use _calculate_log_body_no_init_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE>
+ sfpi_inline vFloat _calculate_log_body_no_init_(vFloat in)
+ {
+@@ -293,6 +298,7 @@ sfpi_inline vFloat _calculate_log_body_no_init_(vFloat in)
+     return vConst1 + (x * (vConst1 + x * partial));
+ }
+ 
++// DEPRECATED: Use _calculate_log_body_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE>
+ sfpi_inline vFloat _calculate_log_body_(vFloat in)
+ {
+@@ -302,6 +308,7 @@ sfpi_inline vFloat _calculate_log_body_(vFloat in)
+     return _calculate_log_body_no_init_<APPROXIMATION_MODE>(in);
+ }
+ 
++// DEPRECATED: Use _calculate_log_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_log_()
+ {
+@@ -316,6 +323,7 @@ inline void _calculate_log_()
      }
  }
  
-+// asinh(x) = log1p(x^2 / (|x| + sqrt(x^2 + 1))) with sign restoration
-+// For small x: asinh(x) ≈ x - x^3/6 + ..., use log1p(x^2) approximation
-+// For large x: asinh(x) ≈ sign(x) * (log(2|x|) + log1p(1/(2*x^2))/2)
- template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
- inline void _calculate_asinh_(const int iterations) {
-     // SFPU microcode
-@@ -44,14 +51,25 @@
-         sfpi::vFloat v = sfpi::dst_reg[0];
-         sfpi::vFloat result = 0.0f;
- 
--        // asinh(x) = ln(|x| + sqrt(x^2 + 1))
--        sfpi::vFloat tmp = v * v + sfpi::vConst1;
--        tmp = _calculate_sqrt_body_<APPROXIMATION_MODE>(tmp);
--        tmp = tmp + sfpi::abs(v);
--        auto res = _calculate_log_body_no_init_(tmp);
-+        sfpi::vFloat abs_v = sfpi::abs(v);
-+        sfpi::vFloat v2 = v * v;
-+        
-+        // Compute sqrt(x^2 + 1) - |x| stably using log1p
-+        // sqrt(x^2 + 1) = |x| * sqrt(1 + 1/x^2) for large |x|
-+        // For small |x|: sqrt(x^2 + 1) ≈ 1 + x^2/2
-+        sfpi::vFloat sqrt_term = _calculate_sqrt_body_<APPROXIMATION_MODE>(v2 + sfpi::vConst1);
-+        
-+        // asinh(x) = sign(x) * log(|x| + sqrt(x^2+1))
-+        // Use log1p formulation: log(|x| + sqrt(x^2+1)) = log1p(|x| - 1 + sqrt(x^2+1))
-+        // Better: log(|x| + sqrt(x^2+1)) = log1p((sqrt(x^2+1) - 1) + |x|)
-+        // Most stable: log1p(|x| + sqrt(x^2+1) - 1) = log1p(|x| + (sqrt(x^2+1) - 1))
-+        // sqrt(x^2+1) - 1 = x^2 / (sqrt(x^2+1) + 1)
-+        sfpi::vFloat denom = sqrt_term + sfpi::vConst1;
-+        sfpi::vFloat correction = v2 * _sfpu_reciprocal_<APPROXIMATION_MODE ? 0 : 2>(denom);
-+        sfpi::vFloat log1p_arg = abs_v + correction;
-+        
-+        result = _calculate_log1p_body_(log1p_arg);
-         sfpi::v_if(v < 0.0f) {
--            res = -res;
-+            result = -result;
-         }
-         sfpi::v_endif;
- 
-@@ -59,16 +77,24 @@
++// DEPRECATED: Use _calculate_log_with_base_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_log_with_base_()
+ {
+@@ -333,6 +341,7 @@ inline void _calculate_log_with_base_()
      }
  }
  
-+// acosh(x) = log1p((x-1) + sqrt((x-1)*(x+1))) for x >= 1
-+// For x near 1: acosh(x) ≈ sqrt(2*(x-1)) for x-1 << 1
-+// For large x: acosh(x) ≈ log(2x) - 1/(4x^2)
- template <bool APPROXIMATION_MODE, int ITERATIONS = 8>
- inline void _calculate_acosh_(const int iterations) {
-     // SFPU microcode
-     for (int d = 0; d < iterations; d++) {
-         sfpi::vFloat v = sfpi::dst_reg[0];
-         sfpi::vFloat result = 0.0f;
++// DEPRECATED: Use _calculate_sigmoid_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_sigmoid_()
+ {
+@@ -348,6 +357,7 @@ inline void _calculate_sigmoid_()
+     }
+ }
  
--        // acosh(x)
++// DEPRECATED: Use _calculate_tanh_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_tanh_()
+ {
+@@ -363,6 +373,7 @@ inline void _calculate_tanh_()
+     }
+ }
+ 
++// DEPRECATED: Use _calculate_hardtanh_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_hardtanh_()
+ {
+@@ -383,6 +394,7 @@ inline void _calculate_hardtanh_()
+     }
+ }
+ 
++// DEPRECATED: Use _calculate_sign_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_sign_()
+ {
+@@ -399,6 +411,7 @@ inline void _calculate_sign_()
+     }
+ }
+ 
++// DEPRECATED: Use _calculate_signbit_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_signbit_()
+ {
+@@ -415,6 +428,7 @@ inline void _calculate_signbit_()
+     }
+ }
+ 
++// DEPRECATED: Use _calculate_rsqrt_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_rsqrt_()
+ {
+@@ -431,6 +445,7 @@ inline void _calculate_rsqrt_()
+     }
+ }
+ 
++// DEPRECATED: Use _calculate_relu_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_relu_()
+ {
+@@ -447,6 +462,7 @@ inline void _calculate_relu_()
+     }
+ }
+ 
++// DEPRECATED: Use _calculate_leaky_relu_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_leaky_relu_()
+ {
+@@ -464,6 +480,7 @@ inline void _calculate_leaky_relu_()
+     }
+ }
+ 
++// DEPRECATED: Use _calculate_elu_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_elu_()
+ {
+@@ -483,6 +500,7 @@ inline void _calculate_elu_()
+     }
+ }
+ 
++// DEPRECATED: Use _calculate_erf_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_erf_()
+ {
+@@ -499,6 +517,7 @@ inline void _calculate_erf_()
+     }
+ }
+ 
++// DEPRECATED: Use _calculate_erfc_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_erfc_()
+ {
+@@ -515,6 +534,7 @@ inline void _calculate_erfc_()
+     }
+ }
+ 
++// DEPRECATED: Use _calculate_gelu_ from ckernel_sfpu_log.h instead
+ template <bool APPROXIMATION_MODE, int ITERATIONS>
+ inline void _calculate_g
