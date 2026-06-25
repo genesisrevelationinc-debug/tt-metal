@@ -1,36 +1,43 @@
-# AudioX Model Bring-Up on TTNN
+# AudioX Model Bring-Up on TT-Metal
 
-This directory contains the TTNN implementation of **AudioX**, a unified framework for anything-to-audio generation, brought up on Tenstorrent hardware.
+This directory contains the TTNN implementation of **AudioX**, a unified framework for anything-to-audio generation.
 
 ## Overview
 
-AudioX is a diffusion transformer-based model for multimodal audio generation. This implementation uses TTNN APIs to run the model on Tenstorrent Wormhole (N150/N300) and Blackhole hardware.
-
-## Supported Generation Modes
-
-- **Text-to-Audio**: Generate sound effects from text descriptions
-- **Text-to-Music**: Generate music from text prompts
-- **Video-to-Audio**: Generate audio synchronized with video
-- **Video-to-Music**: Generate background music for video
-- **Audio Inpainting**: Fill in missing portions of audio
-- **Music Completion**: Continue musical pieces
+AudioX supports multimodal control signals for audio generation:
+- **Text-to-audio**: Generate sound effects from text descriptions
+- **Text-to-music**: Generate music from text prompts
+- **Video-to-audio**: Generate audio synchronized with video
+- **Video-to-music**: Generate background music for video
+- **Audio inpainting**: Fill in missing audio segments
+- **Music completion**: Continue musical pieces
 
 ## Architecture
 
-The model consists of the following components:
+The model consists of the following TTNN modules:
 
-1. **Multimodal Encoders**: Process text, video, image, and audio inputs
-2. **Multimodal Adaptive Fusion**: Fuses diverse multimodal signals
-3. **Diffusion Transformer Decoder**: Generates latent audio representations
-4. **Vocoder**: Converts latents into 16 kHz waveform output
+1. **Multimodal Encoders** (`ttnn_audiox_encoders.py`)
+   - Text encoder (CLAP-based)
+   - Video encoder
+   - Image encoder
+   - Audio encoder
+
+2. **Multimodal Adaptive Fusion** (`ttnn_audiox_fusion.py`)
+   - Adaptive fusion of multimodal inputs
+   - Cross-modal attention mechanisms
+
+3. **Diffusion Transformer** (`ttnn_audiox_transformer.py`)
+   - Diffusion-based generation with transformer architecture
+   - Self-attention and cross-attention layers
+   - DDPM/DDIM sampling
+
+4. **Vocoder** (`ttnn_audiox_vocoder.py`)
+   - Waveform generation from mel-spectrograms
+
+## Requirements
+
+- Tenstorrent hardware: N150 or N300 (Wormhole or Blackhole)
+- tt-metal built with TTNN support
 
 ## Setup
-
-### Prerequisites
-
-- tt-metal built and installed (see [INSTALLING.md](../../../INSTALLING.md))
-- Python 3.8+
-- 32 GB+ RAM recommended
-
-### Installation
 
