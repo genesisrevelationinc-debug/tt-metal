@@ -1,8 +1,8 @@
-# TT-Metalium / TT-NN Models
+# Model Demos
 
-## LLMs
+For a full model list see the [Model Matrix](https://github.com/tenstorrent/tt-metal/blob/main/models/README.md), or visit the [Developer Hub](https://tenstorrent.com/developers).
 
-| Model                                                         | Batch | Hardware                                                 | ttft (ms) | t/s/u | Target<br>t/s/u | t/s    | TT-Metalium Release                                            | vLLM Tenstorrent Repo Release                                                                                |
+Check out the [demos directory](demos/) for model implementations.
 |---------------------------------------------------------------|-------|----------------------------------------------------------|-----------|-------|-----------------|--------|---------------------------------------------------|---------------------------------------------------------------------------------------------------|
 | [Qwen 3 32B (TP=8)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)                       | 32    | [QuietBox (Wormhole)](https://tenstorrent.com/hardware/tt-quietbox) | 94       | 22.8  | 30              | 729.6  | [v0.65.0-rc7](https://github.com/tenstorrent/tt-metal/tree/v0.65.0-rc7) | [59be953](https://github.com/tenstorrent/vllm/tree/59be953f2bbd21e227f9ef4b779f545f9c3bf599/tt_metal) |
 | [QwQ 32B (TP=8)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)                       | 32    | [QuietBox (Wormhole)](https://tenstorrent.com/hardware/tt-quietbox) | 133       | 25.2  | 30              | 806.4  | [v0.56.0-rc51](https://github.com/tenstorrent/tt-metal/tree/v0.56.0-rc51) | [e2e0002](https://github.com/tenstorrent/vllm/tree/e2e0002ac7dcbc5793983c0f967474d4dcab21f8/tt_metal)      |
@@ -125,20 +125,34 @@ Visit the [releases](https://github.com/tenstorrent/tt-metal/tree/main/releases)
 - Models that are advertised as part of release, usually the demo models, are treated as first-class citizens, and therefore are treated as tests.
 - Model writers are responsible for ensuring their demo model tests are always passing. Any failure is treated highest-priority (or P0) failure.
 - Model writers are responsible for advertising which release tag (including release candidates) contains passing tests for their demo models.
-# LiquidAI LFM2.5-VL-1.6B Model Support
+# Liquid AI LFM2.5-VL-1.6B on Tenstorrent
 
-This directory contains the LiquidAI LFM2.5-VL-1.6B model implementation.
+This directory contains the implementation of [Liquid AI LFM2.5-VL-1.6B](https://www.liquid.ai/), a general-purpose vision-language model designed for OCR and document comprehension tasks.
 
-## Model Capabilities
-- **Document Comprehension**: Processes documents with variable resolution
-## Model Architecture
-The LFM2.5-VL-1.6B is a general-purpose vision-language model that can be used for OCR and document comprehension. It is designed to process both text and images with variable resolution.
-## Key Features
-- Multi-modal processing capabilities
-- Variable resolution support for document understanding
-- Image and text processing
-## Configuration
-Model: LFM2.5-VL-1.6B
-Version: 1.6B
-Architecture: Vision-Language model with text and image processing capabilities
+## Model Overview
+
+- **Model**: Liquid AI LFM2.5-VL-1.6B
+- **Parameters**: 1.6B
+- **Architecture**: Vision-Language Model with variable resolution image processing
+- **Use Cases**: OCR, document comprehension, visual question answering
+
+## Features
+
+- Processes text and images with variable resolution
+- Supports mixed-modal inputs (text + image)
+- Optimized for document understanding and OCR tasks
+
+## Files
+
+- `tt/lfm2_5_vl_model.py` - Main model implementation in TT-NN
+- `tt/lfm2_5_vl_attention.py` - Attention mechanism optimized for Tenstorrent hardware
+- `tt/lfm2_5_vl_vision_encoder.py` - Vision encoder for image processing
+- `tt/lfm2_5_vl_text_decoder.py` - Text decoder implementation
+- `reference/lfm2_5_vl_reference.py` - Reference implementation for validation
+- `tests/test_lfm2_5_vl.py` - Unit tests for model components
+- `demo.py` - Demo script for running inference
+
+## Usage
+
+
 - Model writers are responsible for updating their perf metrics for the demo models at a regular cadence. Currently, the cadence is at least every 2 weeks.
