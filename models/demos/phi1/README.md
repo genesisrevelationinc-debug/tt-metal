@@ -4,20 +4,19 @@ This directory contains the implementation of [microsoft/phi-1](https://huggingf
 
 ## Model Overview
 
-Phi-1 is a 1.3B parameter transformer-based language model optimized for code and text generation. It uses a compact architecture with:
-
+Phi-1 is a 1.3B parameter transformer-based language model optimized for code and text tasks. It uses a compact architecture with:
 - 24 layers
 - 32 attention heads
 - 2048 hidden dimension
-- 2048 context length
-- Rotary Position Embeddings (RoPE)
+- 51200 vocabulary size
+- Rotary positional embeddings (RoPE)
 - SwiGLU activation
 - LayerNorm (not RMSNorm)
 
 ## Files
 
 - `model.py` - Core model implementation using tt-transformers base modules
-- `demo.py` - Inference demo script
+- `demo.py` - Demo script for running inference
 - `test_phi1.py` - Unit tests for model components
 
 ## Usage
