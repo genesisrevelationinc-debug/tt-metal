@@ -1,6 +1,6 @@
 # LLVC (Low-Latency Low-Resource Voice Conversion) on Tenstorrent
 
-This directory contains the TTNN implementation of the LLVC model for real-time voice conversion on Tenstorrent hardware.
+This directory contains the TTNN implementation of the LLVC (Low-Latency Low-Resource Voice Conversion) model for Tenstorrent hardware.
 
 ## Overview
 
@@ -8,19 +8,27 @@ LLVC is a real-time voice conversion model optimized for low latency and CPU eff
 
 ## Features
 
-- **Streaming mode**: Real-time conversion with chunked processing
-- **Non-streaming mode**: Full-context conversion
+- **Streaming and non-streaming modes**: Supports both real-time chunked processing and full-context conversion
 - **F0-based and F0-free modes**: Optional pitch-dependent or pitch-independent conversion
-- **Optimized for Tenstorrent hardware**: Uses sharded memory configs, fused ops, and efficient tensor manipulation
+- **Optimized for Tenstorrent hardware**: Leverages TTNN fused ops, sharded memory configs, and efficient tensor manipulations
+- **State caching**: Efficient causal convolution state management for streaming
 
 ## Architecture
 
-The model consists of:
-- **Lightweight Encoder**: Optimized convolutional layers with reduced complexity
-- **Content Encoder**: Extracts content features from source audio
-- **Speaker Encoder**: Extracts speaker embedding from target speaker
-- **Decoder**: Generates converted audio features
-- **Vocoder**: Converts features to waveform (HiFi-GAN based)
+The LLVC model consists of:
 
-## Setup
+1. **Lightweight Encoder**: Optimized convolutional layers with reduced complexity
+2. **Content Encoder**: Extracts content features from source audio
+3. **Speaker Encoder**: Extracts speaker embedding from target speaker reference
+4. **Decoder**: Generates converted audio features
+5. **Vocoder**: Converts features to final audio waveform
+
+## Requirements
+
+- Tenstorrent hardware (N150 or N300)
+- tt-metal built with TTNN support
+- Python 3.8+
+- See `requirements.txt` for Python dependencies
+
+## Installation
 
