@@ -1,50 +1,42 @@
-# Model Demos
+# LiquidAI LFM2.5-VL-1.6B on tt-metal
 
-# LiquidAI LFM2.5-VL-1.6B Demo
-
-This demo implements the LiquidAI LFM2.5-VL-1.6B vision-language model on tt-metal. LFM2.5-VL-1.6B is a general-purpose vision-language model designed for OCR and document comprehension, capable of processing text and images with variable resolution.
+This directory contains the implementation of [LiquidAI LFM2.5-VL-1.6B](https://www.liquid.ai/), a general-purpose vision-language model designed for OCR and document comprehension with variable resolution support.
 
 ## Model Overview
 
-- **Model**: LiquidAI LFM2.5-VL-1.6B
-- **Architecture**: Vision-Language Model with variable resolution support
 - **Parameters**: 1.6B
+- **Architecture**: Vision-Language Model with variable resolution image processing
 - **Use Cases**: OCR, document comprehension, visual question answering
+- **Hardware Support**: Wormhole_B0, Blackhole
 
 ## Features
 
-- Variable resolution image processing
-- Text and image multimodal input
+- Text and image processing with variable resolution
 - Optimized for Tenstorrent hardware acceleration
 
-## Prerequisites
+## Quick Start
 
-- tt-metal installed and configured
-- Compatible Tenstorrent hardware (Wormhole or Blackhole)
-
-## Usage
-
-### Basic Inference
+### Prerequisites
 
 
-## LiquidAI LFM2.5-VL-1.6B
+# Model Matrix
 
-## Overview
-
-This directory contains model demos for various neural network architectures optimized for Tenstorrent hardware.
-|---------------------------------------------------------------|-------|----------------------------------------------------------|-----------|-------|-----------------|--------|---------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| Model      | Device Support | Model Location | Description |
+|------------|--------------|----------------|-------------|
+| Llama 3.3 70B | Wormhole_B0, Blackhole | [models/demos/llama3_70b_galaxy](demos/llama3_70b_galaxy) | 70B parameter LLM |
+| Qwen 2.5 7B | Wormhole_B0, Blackhole | [models/tt_transformers](tt_transformers) | 7B parameter LLM |
+| LiquidAI LFM2.5-VL-1.6B | Wormhole_B0, Blackhole | [models/demos/lfm2_5_vl](demos/lfm2_5_vl) | 1.6B parameter vision-language model for OCR and document comprehension |
 | [Qwen 3 32B (TP=8)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)                       | 32    | [QuietBox (Wormhole)](https://tenstorrent.com/hardware/tt-quietbox) | 94       | 22.8  | 30              | 729.6  | [v0.65.0-rc7](https://github.com/tenstorrent/tt-metal/tree/v0.65.0-rc7) | [59be953](https://github.com/tenstorrent/vllm/tree/59be953f2bbd21e227f9ef4b779f545f9c3bf599/tt_metal) |
 | [QwQ 32B (TP=8)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)                       | 32    | [QuietBox (Wormhole)](https://tenstorrent.com/hardware/tt-quietbox) | 133       | 25.2  | 30              | 806.4  | [v0.56.0-rc51](https://github.com/tenstorrent/tt-metal/tree/v0.56.0-rc51) | [e2e0002](https://github.com/tenstorrent/vllm/tree/e2e0002ac7dcbc5793983c0f967474d4dcab21f8/tt_metal)      |
 | [DeepSeek R1 Distill Llama 3.3 70B (TP=8)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)       | 32    | [QuietBox  (Wormhole)](https://tenstorrent.com/hardware/tt-quietbox) | 159       | 15.9  | 20    | 508.8  | [v0.59.0-rc53](https://github.com/tenstorrent/tt-metal/tree/v0.59.0-rc53) | [f028da1](https://github.com/tenstorrent/vllm/tree/f028da11b5b8205272bf18a478de93bd2dd3e29e/tt_metal)      |
 | [Llama 3.3 70B (TP=32)](https://github.com/tenstorrent/tt-metal/tree/main/models/demos/llama3_70b_galaxy)        | 32    | [Galaxy (Wormhole)](https://tenstorrent.com/hardware/galaxy) | 53      | 72.5  | 80              | 2268.8  | [v0.65.0-rc7](https://github.com/tenstorrent/tt-metal/tree/v0.65.0-rc7) | [59be953](https://github.com/tenstorrent/vllm/tree/59be953f2bbd21e227f9ef4b779f545f9c3bf599/tt_metal) |
 | [Llama 3.3 70B (TP=8)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)                 | 32    | [QuietBox  (Wormhole)](https://tenstorrent.com/hardware/tt-quietbox) | 159       | 15.9  | 20              | 508.8  | [v0.59.0-rc53](https://github.com/tenstorrent/tt-metal/tree/v0.59.0-rc53) | [f028da1](https://github.com/tenstorrent/vllm/tree/f028da11b5b8205272bf18a478de93bd2dd3e29e/tt_metal)      |
-| Model | Description | Path |
-|-------|-------------|------|
-| Llama 3.3 70virgin 70B | Large language model with tensor parallelism | [demos/llama3_70b_galaxy](./demos/llama3_70b_galaxy) |
-| LiquidAI LFM2.5-VL-1.6B | Vision-language model for OCR and document comprehension | [demos/lfm2_5_vl](./demos/lfm2_5_vl) |
-| Qwen 2.5 7B | Transformer-based language model | [tt_transformers](../tt_transformers) |
-
-## Getting Started
+| [Llama 3.1 70B (TP=4)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)                 | 32    | [QuietBox (Blackhole)](https://tenstorrent.com/hardware/tt-quietbox) | 188*       | 14.9*  |               | 476.5*  | [v0.62.0-dev20251015](https://github.com/tenstorrent/tt-metal/tree/v0.62.0-dev20251015) | [1d799da](https://github.com/tenstorrent/vllm/tree/1d799da2ebc6a809d45a543debca89a92ed6a6d7/tt_metal)      |
+| [Llama 3.2 11B Vision (TP=2)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)          | 16     | [n300 (Wormhole)](https://tenstorrent.com/hardware/wormhole)        | 714       | 18.1  | 17              | 289.6   | [v0.62.0-dev20251015](https://github.com/tenstorrent/tt-metal/tree/v0.62.0-dev20251015)  | [1d799da](https://github.com/tenstorrent/vllm/tree/1d799da2ebc6a809d45a543debca89a92ed6a6d7/tt_metal) |
+| [Qwen 2.5 7B (TP=2)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)   | 32     | [n300 (Wormhole)](https://tenstorrent.com/hardware/wormhole)        | 109      | 22.1  | 30              | 707.2   | [v0.62.0-rc35](https://github.com/tenstorrent/tt-metal/tree/v0.62.0-rc35) | [ced0161](https://github.com/tenstorrent/vllm/tree/ced0161dc223e6d8aca5f44a6c43d13070c3fba6/tt_metal) |
+| [Qwen 2.5 72B (TP=8)](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)               | 32    | [QuietBox (Wormhole)](https://tenstorrent.com/hardware/tt-quietbox) | 223       | 15.4  | 20              | 492.8  | [v0.62.0-rc25](https://github.com/tenstorrent/tt-metal/tree/v0.62.0-rc25) | [e7c329b](https://github.com/tenstorrent/vllm/tree/e7c329b1664f8591ae8b4269bed9690726e52a24/tt_metal) |
+| [Falcon 7B](https://github.com/tenstorrent/tt-metal/tree/main/models/demos/wormhole/falcon7b)                 | 32    | [n150 (Wormhole)](https://tenstorrent.com/hardware/wormhole)        | 70        | 18.5  | 26              | 592.0  | [v0.62.0-dev20251015](https://github.com/tenstorrent/tt-metal/tree/v0.62.0-dev20251015) |                                                                                                   |
+| [Falcon 7B (DP=8)](https://github.com/tenstorrent/tt-metal/tree/main/models/demos/t3000/falcon7b)             | 256   | [QuietBox (Wormhole)](https://tenstorrent.com/hardware/tt-quietbox) | 87        | 15.9  | 26              | 4070.4 | [v0.62.0-dev20250926](https://github.com/tenstorrent/tt-metal/tree/v0.62.0-dev20250926) |                                                                                                   |
 | [Falcon 7B (DP=32)](https://github.com/tenstorrent/tt-metal/tree/main/models/demos/tg/falcon7b)               | 1024  | [Galaxy (Wormhole)](https://tenstorrent.com/hardware/galaxy)        | 121       | 13.2   | 26              | 13516.8 | [v0.62.0-rc25](https://github.com/tenstorrent/tt-metal/tree/v0.62.0-rc25) |                                                                                                   |
 | [Falcon 40B (TP=8)](https://github.com/tenstorrent/tt-metal/tree/main/models/demos/t3000/falcon40b)           | 32    | [QuietBox (Wormhole)](https://tenstorrent.com/hardware/tt-quietbox) |           | 11.9   | 36              | 380.8  | [v0.59.0-rc38](https://github.com/tenstorrent/tt-metal/tree/v0.59.0-rc38)  |                                                                                                   |
 | [Llama 3.1 8B](https://github.com/tenstorrent/tt-metal/tree/main/models/tt_transformers)                         | 32     | [p100 (Blackhole)](https://tenstorrent.com/hardware/blackhole)        | 61*       | 29.0*   |               | 928.0*   | [v0.64.0-dev20251030](https://github.com/tenstorrent/tt-metal/tree/v0.64.0-dev20251030) | [0edd242](https://github.com/tenstorrent/vllm/tree/0edd242e0f91ca92cb95624f1acb1237fc9c2008/tt_metal) |
