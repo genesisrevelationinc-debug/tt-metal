@@ -1,25 +1,15 @@
-# Microsoft Phi-1 on Tenstorrent Wormhole
+# Phi-1 Model Demo on Wormhole
 
-This directory contains the implementation of [microsoft/phi-1](https://huggingface.co/microsoft/phi-1) for Tenstorrent's Wormhole hardware (N150/N300).
+This directory contains the implementation and demo for running Microsoft's Phi-1 model on Tenstorrent Wormhole hardware (N150/N300).
 
 ## Model Overview
 
-Phi-1 is a 1.3B parameter transformer-based language model optimized for code and text tasks. It uses a compact architecture with:
-- 24 layers
-- 32 attention heads
-- 2048 hidden dimension
-- 51200 vocabulary size
-- Rotary positional embeddings (RoPE)
-- SwiGLU activation
-- LayerNorm (not RMSNorm)
+Phi-1 is a 1.3B parameter transformer-based language model designed by Microsoft for efficient code and text generation tasks. It features:
+- 24 transformer layers
+- Hidden size of 2048
+- 16 attention heads
+- Rotary position embeddings
+- GELU activation
 
-## Files
-
-- `model.py` - Core model implementation using tt-transformers base modules
-- `demo.py` - Demo script for running inference
-- `test_phi1.py` - Unit tests for model components
-
-## Usage
-
-### Running the Demo
+## Quick Start
 
