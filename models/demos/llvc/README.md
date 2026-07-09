@@ -1,23 +1,31 @@
-# LLVC (Low-Latency Low-Resource Voice Conversion) on Tenstorrent
-
-This directory contains the TTNN implementation of the LLVC model for ultra-low-latency voice conversion on Tenstorrent hardware.
+# LLVC (Low-Latency Low-Resource Voice Conversion) on Tenstorrent Hardware
 
 ## Overview
 
-LLVC is a real-time voice conversion model optimized for low latency and CPU efficiency. This implementation brings LLVC to Tenstorrent hardware using TTNN APIs, achieving:
+This directory contains a TTNN-based implementation of the LLVC model from Koe AI, optimized for ultra-low-latency voice conversion on Tenstorrent hardware (Wormhole/Blackhole).
 
-- **Streaming mode**: Real-time conversion with chunked processing
-- **Non-streaming mode**: Full-context conversion
-- Target performance: 50+ tokens/second, RTF < 0.3, latency < 100ms
+LLVC is a real-time voice conversion model designed for:
+- Ultra-low latency (< 100ms streaming chunks)
+- CPU-efficient operation (RTF < 0.1 on CPU)
+- Streaming and non-streaming modes
+- Optional F0-independent conversion
+- High-quality natural voice output
 
 ## Architecture
 
 The model consists of:
 - **Lightweight Encoder**: Optimized convolutional layers with reduced complexity
-- **Content Encoder**: Extracts content features from source audio
-- **Speaker Encoder**: Extracts speaker identity embeddings
-- **Decoder**: Reconstructs audio with target speaker characteristics
-- **Vocoder**: Converts mel-spectrograms to waveform (optional, can use external)
+- **Decoder**: Streaming-capable with cached convolution states
+- **Optional Pitch Extractor**: F0-based and F0-free modes
+- **Vocoder**: Integration for waveform synthesis
 
-## Directory Structure
+## Requirements
+
+- Tenstorrent hardware (N150/N300 Wormhole or Blackhole)
+- tt-metal installed and configured
+- Python 3.8+
+- PyTorch (for reference comparison)
+- librosa, soundfile (for audio processing)
+
+## Setup
 
