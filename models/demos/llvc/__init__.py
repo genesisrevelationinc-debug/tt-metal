@@ -1,5 +1,5 @@
-# SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2024 Tenstorrent AI ULC
+"""
+LLVC: Low-Latency Low-Resource Voice Conversion on Tenstorrent Hardware
+"""
 
-from models.demos.llvc.tt_llvc import TtLLVC
-from models.demos.llvc.reference.llvc_pytorch import LlvcPytorch
+from .model import LLVCModel, LLVCConfig
