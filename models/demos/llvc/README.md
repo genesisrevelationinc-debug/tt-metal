@@ -1,28 +1,33 @@
 # LLVC (Low-Latency Low-Resource Voice Conversion) on Tenstorrent
 
-This directory contains the TTNN implementation of LLVC, a real-time voice conversion model from Koe AI optimized for low latency and CPU efficiency.
+## Overview
 
-## Model Overview
+LLVC is a real-time voice conversion model from Koe AI, optimized for low latency and CPU efficiency. This implementation brings LLVC to Tenstorrent hardware (Wormhole/Blackhole) using TTNN APIs, enabling ultra-high-throughput, ultra-low-latency voice conversion.
 
-LLVC is a voice conversion model designed for:
-- **Ultra-low latency**: Real-time voice conversion with minimal delay
-- **CPU-optimized**: Efficient enough to run on CPU in real-time
-- **Streaming support**: True streaming inference with chunked processing
-- **High quality**: Natural voice conversion while maintaining low latency
-- **Small model size**: Low resource requirements for edge deployment
-- **No F0 dependency**: Optional pitch-independent conversion mode
+Key features:
+- Ultra-low latency streaming voice conversion
+- CPU-optimized architecture adapted for TT hardware
+- Supports both streaming and non-streaming modes
+- Optional F0-based and F0-free pitch extraction modes
+- MIT License (free for commercial use)
 
 ## Architecture
 
 The model consists of:
-- **Lightweight encoder**: Optimized convolutional layers with reduced complexity
-- **Streaming-capable decoder**: Causal convolutions with state caching
-- **Optional pitch extraction**: F0-based and F0-free modes
-- **Vocoder integration**: HiFi-GAN or compatible vocoder
+- **Lightweight Encoder**: Optimized convolutional layers with reduced complexity
+- **Decoder**: Streaming-capable architecture with causal convolutions
+- **Pitch Extractor** (optional): F0-based or F0-free modes
+- **Vocoder**: HiFi-GAN based vocoder for waveform generation
+
+## Requirements
+
+- Tenstorrent Wormhole (N150/N300) or Blackhole hardware
+- tt-metal installed and configured
+- Python 3.8+
+- PyTorch (for reference comparison)
+- librosa, soundfile (for audio processing)
 
 ## Setup
-
-### Prerequisites
 
 1. Install tt-metal following the [installation guide](../../../INSTALLING.md)
 2. Install additional dependencies:
