@@ -1,31 +1,28 @@
 # LLVC (Low-Latency Low-Resource Voice Conversion) on Tenstorrent
 
-## Overview
+This directory contains the TTNN implementation of LLVC, a real-time voice conversion model from Koe AI optimized for low latency and CPU efficiency.
 
-This demo implements the LLVC model from [Koe AI](https://github.com/KoeAI/LLVC) using TTNN APIs on Tenstorrent hardware (Wormhole/Blackhole).
+## Model Overview
 
-LLVC is a real-time voice conversion model optimized for low latency and CPU efficiency. Key features:
-- Ultra-low latency streaming voice conversion
-- CPU-optimized architecture (RTF < 0.1 on CPU)
-- True streaming inference with chunked processing
-- Optional F0-independent conversion mode
-- MIT License
+LLVC is a voice conversion model designed for:
+- **Ultra-low latency**: Real-time voice conversion with minimal delay
+- **CPU-optimized**: Efficient enough to run on CPU in real-time
+- **Streaming support**: True streaming inference with chunked processing
+- **High quality**: Natural voice conversion while maintaining low latency
+- **Small model size**: Low resource requirements for edge deployment
+- **No F0 dependency**: Optional pitch-independent conversion mode
 
 ## Architecture
 
 The model consists of:
-- **Lightweight Encoder**: Optimized convolutional layers with reduced complexity
-- **Streaming Decoder**: Causal convolutions with state caching for chunked processing
-- **Optional Pitch Extractor**: F0-based and F0-free modes
-- **Vocoder Integration**: HiFi-GAN or compatible vocoder
-
-## Requirements
-
-- Tenstorrent hardware (N150/N300 Wormhole or Blackhole)
-- tt-metal installed and configured
-- Python 3.8+
-- PyTorch (for reference comparison)
-- librosa, soundfile (for audio processing)
+- **Lightweight encoder**: Optimized convolutional layers with reduced complexity
+- **Streaming-capable decoder**: Causal convolutions with state caching
+- **Optional pitch extraction**: F0-based and F0-free modes
+- **Vocoder integration**: HiFi-GAN or compatible vocoder
 
 ## Setup
 
+### Prerequisites
+
+1. Install tt-metal following the [installation guide](../../../INSTALLING.md)
+2. Install additional dependencies:
